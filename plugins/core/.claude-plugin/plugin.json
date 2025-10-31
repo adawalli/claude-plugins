@@ -1,0 +1,10 @@
+{
+  "name": "core",
+  "version": "1.0.4",
+  "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
+  "author": {
+    "name": "Adam Wallis"
+  },
+  "repository": "https://github.com/adawalli/claude-core.git",
+  "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows"]
+}
