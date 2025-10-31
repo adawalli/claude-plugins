@@ -1,0 +1,23 @@
+{
+    "name": "adawalli",
+    "owner": {
+      "name": "Adam Wallis"
+    },
+    "metadata": {
+      "description": "Personal Curated Claude Code plugins: skills, workflows, and productivity tools",
+      "version": "1.0.0"
+    },
+    "plugins": [
+      {
+        "name": "core",
+        "source": {
+          "source": "url",
+          "url": "https://github.com/adawalli/claude-core.git"
+        },
+        "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
+        "version": "1.0.0",
+        "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows"],
+        "strict": true
+    }
+    ]
+  }
