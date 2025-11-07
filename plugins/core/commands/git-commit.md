@@ -98,6 +98,7 @@ Example of splitting commits:
 - If specific files are already staged, the command will only commit those files
 - If no files are staged, it will automatically stage all modified and new files
 - The commit message will be constructed based on the changes detected
+- Commit messages are constructed using multiple `-m` flags (never heredocs) to ensure proper formatting
 - Before committing, the command will review the diff to identify if multiple commits would be more appropriate
 - If suggesting multiple commits, it will help you stage and commit the changes separately
 - Always reviews the commit diff to ensure the message matches the changes
