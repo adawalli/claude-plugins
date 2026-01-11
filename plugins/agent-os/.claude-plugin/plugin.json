@@ -1,0 +1,10 @@
+{
+  "name": "agent-os",
+  "version": "1.0.0",
+  "description": "Ralph Loop integration with agent-os spec-driven development system",
+  "author": {
+    "name": "Adam Wallis"
+  },
+  "repository": "https://github.com/adawalli/claude-plugins.git",
+  "keywords": ["ralph-loop", "agent-os", "automation", "spec-driven", "tasks"]
+}
