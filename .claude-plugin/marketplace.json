@@ -1,29 +1,50 @@
 {
-    "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-    "name": "adawalli",
-    "owner": {
-      "name": "Adam Wallis"
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "adawalli",
+  "owner": {
+    "name": "Adam Wallis"
+  },
+  "metadata": {
+    "description": "Personal Curated Claude Code plugins: skills, workflows, and productivity tools",
+    "version": "1.0.4"
+  },
+  "plugins": [
+    {
+      "name": "core",
+      "source": "./plugins/core",
+      "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
+      "version": "1.0.5",
+      "keywords": [
+        "skills",
+        "tdd",
+        "debugging",
+        "collaboration",
+        "best-practices",
+        "workflows"
+      ],
+      "strict": true
     },
-    "metadata": {
-      "description": "Personal Curated Claude Code plugins: skills, workflows, and productivity tools",
-      "version": "1.0.4"
+    {
+      "name": "agent-os",
+      "source": "./plugins/agent-os",
+      "description": "Ralph Loop integration with agent-os spec-driven development system",
+      "version": "1.0.0",
+      "keywords": [
+        "ralph-loop",
+        "agent-os",
+        "automation",
+        "spec-driven",
+        "tasks"
+      ],
+      "strict": true
     },
-    "plugins": [
-      {
-        "name": "core",
-        "source": "./plugins/core",
-        "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
-        "version": "1.0.5",
-        "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows"],
-        "strict": true
-      },
-      {
-        "name": "agent-os",
-        "source": "./plugins/agent-os",
-        "description": "Ralph Loop integration with agent-os spec-driven development system",
-        "version": "1.0.0",
-        "keywords": ["ralph-loop", "agent-os", "automation", "spec-driven", "tasks"],
-        "strict": true
-      }
-    ]
-  }
+    {
+      "name": "opus-gatekeeper",
+      "source": "./plugins/opus-gatekeeper",
+      "description": "Routes permission requests to Opus 4.5 for intelligent auto-approval of safe operations",
+      "version": "1.0.0",
+      "keywords": ["security", "permissions", "opus", "auto-approve"],
+      "strict": true
+    }
+  ]
+}

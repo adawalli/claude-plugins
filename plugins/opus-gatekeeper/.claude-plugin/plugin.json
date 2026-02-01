@@ -1,0 +1,9 @@
+{
+  "name": "opus-gatekeeper",
+  "version": "1.0.0",
+  "description": "Routes permission requests to Opus 4.5 for intelligent auto-approval of safe operations",
+  "author": {
+    "name": "Adam Wallis"
+  },
+  "keywords": ["security", "permissions", "opus", "auto-approve"]
+}
