@@ -8,9 +8,24 @@ description: "Operate Obsidian vaults via the `obsidian` CLI - create/read/edit 
 CLI reference based on Obsidian v1.12.4 (installer 1.11.7). All commands:
 `obsidian <command> [options]`.
 
-**IPC requirement:** The `obsidian` CLI communicates with the running Obsidian Desktop app via IPC.
-Obsidian must be open for commands to work. If commands fail with connection errors, they likely
-need to run outside the sandbox (`dangerouslyDisableSandbox: true`).
+## CRITICAL: Sandbox Requirement
+
+**Every `obsidian` command MUST be run with `dangerouslyDisableSandbox: true`. No exceptions.**
+
+The `obsidian` CLI communicates with the running Obsidian Desktop app via a Unix socket (IPC).
+The Claude Code sandbox blocks Unix socket access entirely - commands will fail silently or with
+cryptic connection errors until you disable the sandbox. This is not a transient issue; it is a
+hard architectural constraint.
+
+**Before running any `obsidian` command:**
+1. Set `dangerouslyDisableSandbox: true` on the Bash tool call
+2. Confirm Obsidian Desktop is open (the CLI requires an active app connection)
+
+`dangerouslyDisableSandbox: true` does not bypass the user's permission model - the user will
+still be prompted to approve the command before it runs. It only removes the filesystem/network
+sandbox that prevents Unix socket access.
+
+Attempting `obsidian` commands without disabling the sandbox will always fail.
 
 **CLI version note:** This reference was built against Obsidian v1.12.4. If commands behave
 unexpectedly, run `obsidian version` and `obsidian help <command>` to check for changes.
