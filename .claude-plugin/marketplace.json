@@ -14,14 +14,7 @@
       "source": "./plugins/core",
       "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
       "version": "1.0.5",
-      "keywords": [
-        "skills",
-        "tdd",
-        "debugging",
-        "collaboration",
-        "best-practices",
-        "workflows"
-      ],
+      "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows"],
       "strict": true
     },
     {
@@ -29,13 +22,7 @@
       "source": "./plugins/agent-os",
       "description": "Ralph Loop integration with agent-os spec-driven development system",
       "version": "1.0.0",
-      "keywords": [
-        "ralph-loop",
-        "agent-os",
-        "automation",
-        "spec-driven",
-        "tasks"
-      ],
+      "keywords": ["ralph-loop", "agent-os", "automation", "spec-driven", "tasks"],
       "strict": true
     },
     {
@@ -44,6 +31,14 @@
       "description": "Routes permission requests to Opus 4.5 for intelligent auto-approval of safe operations",
       "version": "1.0.0",
       "keywords": ["security", "permissions", "opus", "auto-approve"],
+      "strict": true
+    },
+    {
+      "name": "obsidian",
+      "source": "./plugins/obsidian",
+      "description": "Obsidian vault management via CLI - notes, properties, search, plugins, sync, and developer tools",
+      "version": "1.0.0",
+      "keywords": ["obsidian", "notes", "knowledge-base", "vault", "markdown", "cli"],
       "strict": true
     }
   ]
