@@ -95,6 +95,39 @@ obsidian task file="Todo" line=5 done   # mark done
 obsidian task file="Todo" line=5 status="/" # custom status char
 ```
 
+## Parsing Output
+
+When processing command output, prefer CLI tools over Python. Check availability first:
+
+```bash
+command -v jq   # JSON parsing
+command -v yq   # YAML/JSON parsing (supports both)
+command -v gawk # field/column processing
+```
+
+**JSON output** (`format=json`): use `jq` if available.
+
+```bash
+obsidian files format=json | jq '.[].path'
+obsidian properties file="Note" format=json | jq '.tags[]'
+obsidian search query="meeting" format=json | jq '.[] | {file, line}'
+```
+
+**YAML/JSON** (`format=json` or properties): use `yq` if available, falls back to `jq`.
+
+```bash
+obsidian properties file="Note" format=json | yq '.status'
+```
+
+**TSV/CSV output**: use `awk`, `cut`, or `column` - no external deps needed.
+
+```bash
+obsidian files format=tsv | awk -F'\t' '{print $1}'
+obsidian tags format=tsv | column -t -s $'\t'
+```
+
+Only fall back to Python when the above tools are not available or the transformation is too complex for them.
+
 ## Tips
 
 - Pipe JSON output to jq for filtering: `obsidian files format=json | jq '.[]'`
