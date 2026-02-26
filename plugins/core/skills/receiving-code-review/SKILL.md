@@ -10,7 +10,8 @@ credit: https://github.com/obra
 
 Code review requires technical evaluation, not emotional performance.
 
-**Core principle:** Verify before implementing. Ask before assuming. Technical correctness over social comfort.
+**Core principle:** Verify before implementing. Ask before assuming. Technical correctness over
+social comfort.
 
 ## The Response Pattern
 
@@ -101,7 +102,8 @@ IF reviewer suggests "implementing properly":
   IF used: Then implement properly
 ```
 
-**your human partner's rule:** "You and reviewer both report to me. If we don't need this feature, don't add it."
+**your human partner's rule:** "You and reviewer both report to me. If we don't need this feature,
+don't add it."
 
 ## Implementation Order
 

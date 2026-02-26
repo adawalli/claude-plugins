@@ -1,10 +1,12 @@
 # Opus Permission Gatekeeper
 
-Routes Bash permission requests to Opus 4.5 for intelligent security evaluation. Safe commands are auto-approved; risky ones fall through to the user.
+Routes Bash permission requests to Opus 4.5 for intelligent security evaluation. Safe commands are
+auto-approved; risky ones fall through to the user.
 
 ## How It Works
 
-When Claude Code requests permission to run a Bash command, this hook intercepts the request and sends it to Opus 4.5 for evaluation. Opus analyzes the command context and returns:
+When Claude Code requests permission to run a Bash command, this hook intercepts the request and
+sends it to Opus 4.5 for evaluation. Opus analyzes the command context and returns:
 
 - `{"ok": true}` — Command is auto-approved
 - `{"ok": false, "reason": "..."}` — Command is denied, user sees the reason
@@ -33,7 +35,8 @@ Potentially dangerous operations:
 
 ## Uncertain Cases
 
-When Opus can't confidently determine safety, it returns `{"ok": false, "reason": "Requires user review"}`, letting the user make the final call.
+When Opus can't confidently determine safety, it returns
+`{"ok": false, "reason": "Requires user review"}`, letting the user make the final call.
 
 ## Trade-offs
 

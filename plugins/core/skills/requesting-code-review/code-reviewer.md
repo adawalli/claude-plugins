@@ -20,8 +20,7 @@ You are reviewing code changes for production readiness.
 
 ## Git Range to Review
 
-**Base:** {BASE_SHA}
-**Head:** {HEAD_SHA}
+**Base:** {BASE_SHA} **Head:** {HEAD_SHA}
 
 ```bash
 git diff --stat {BASE_SHA}..{HEAD_SHA}

@@ -4,7 +4,9 @@ A curated marketplace registry for Claude Code plugins, skills, workflows, and p
 
 ## Overview
 
-This repository serves as a personal marketplace registry for Claude Code, providing access to carefully selected plugins that enhance development workflows with TDD practices, debugging tools, collaboration patterns, and proven techniques.
+This repository serves as a personal marketplace registry for Claude Code, providing access to
+carefully selected plugins that enhance development workflows with TDD practices, debugging tools,
+collaboration patterns, and proven techniques.
 
 ## Installation
 
@@ -40,13 +42,15 @@ Replace `core` with the name of any plugin available in this registry.
 
 ### core
 
-**Description:** Core skills library with TDD, debugging, collaboration patterns, and proven techniques
+**Description:** Core skills library with TDD, debugging, collaboration patterns, and proven
+techniques
 
 **Source:** [github.com/adawalli/claude-core](https://github.com/adawalli/claude-core.git)
 
 **Keywords:** skills, tdd, debugging, collaboration, best-practices, workflows
 
 **Install:**
+
 ```bash
 /plugin install core@adawalli
 ```
@@ -72,7 +76,8 @@ Use the `/plugin` command to see all installed plugins and their status.
 
 ## Team Setup
 
-For team-wide automatic installation, add this marketplace and desired plugins to your repository's `.claude/settings.json`:
+For team-wide automatic installation, add this marketplace and desired plugins to your repository's
+`.claude/settings.json`:
 
 ```json
 {
@@ -93,6 +98,7 @@ Team members who trust the repository will automatically have these plugins inst
 ```
 
 The `marketplace.json` file defines:
+
 - Marketplace metadata (name, owner, description, version)
 - Available plugins with their sources and configurations
 - Plugin descriptions, keywords, and version information
@@ -105,4 +111,5 @@ The `marketplace.json` file defines:
 
 ## Support
 
-For issues with specific plugins, refer to their individual repositories. For marketplace-related issues, open an issue in this repository.
+For issues with specific plugins, refer to their individual repositories. For marketplace-related
+issues, open an issue in this repository.

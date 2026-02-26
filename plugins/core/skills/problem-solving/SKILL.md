@@ -10,7 +10,8 @@ credit: https://github.com/obra
 
 ## Overview
 
-Sometimes one insight eliminates 10 things. Look for the unifying principle that makes multiple components unnecessary.
+Sometimes one insight eliminates 10 things. Look for the unifying principle that makes multiple
+components unnecessary.
 
 **Core principle:** "Everything is a special case of..." collapses complexity dramatically.
 
@@ -38,23 +39,20 @@ Sometimes one insight eliminates 10 things. Look for the unifying principle that
 
 ### Cascade 1: Stream Abstraction
 
-**Before:** Separate handlers for batch/real-time/file/network data
-**Insight:** "All inputs are streams - just different sources"
-**After:** One stream processor, multiple stream sources
+**Before:** Separate handlers for batch/real-time/file/network data **Insight:** "All inputs are
+streams - just different sources" **After:** One stream processor, multiple stream sources
 **Eliminated:** 4 separate implementations
 
 ### Cascade 2: Resource Governance
 
 **Before:** Session tracking, rate limiting, file validation, connection pooling (all separate)
-**Insight:** "All are per-entity resource limits"
-**After:** One ResourceGovernor with 4 resource types
-**Eliminated:** 4 custom enforcement systems
+**Insight:** "All are per-entity resource limits" **After:** One ResourceGovernor with 4 resource
+types **Eliminated:** 4 custom enforcement systems
 
 ### Cascade 3: Immutability
 
-**Before:** Defensive copying, locking, cache invalidation, temporal coupling
-**Insight:** "Treat everything as immutable data + transformations"
-**After:** Functional programming patterns
+**Before:** Defensive copying, locking, cache invalidation, temporal coupling **Insight:** "Treat
+everything as immutable data + transformations" **After:** Functional programming patterns
 **Eliminated:** Entire classes of synchronization problems
 
 ## Process
