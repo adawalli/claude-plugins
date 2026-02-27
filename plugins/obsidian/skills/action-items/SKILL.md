@@ -47,28 +47,42 @@ The `length > 6` check filters out empty checkboxes (`- [ ] ` is 6 chars).
 
 ### Step 3: Present Combined Results
 
-Group results in two sections:
-1. **From Daily Notes** - personal todos, attributed by date (only shown for default owner)
-2. **From Meeting Notes** - include the meeting title as context for each item
+Present results as three separate tables, in this order:
+1. **Meetings** - tasks from `Meetings/` notes (only shown when results exist)
+2. **Daily** - personal todos from `Daily/` notes (only shown for default owner, when results exist)
+3. **Projects** - tasks from any other path not matching the above (only shown when results exist)
 
 Show a total count at the end.
 
 ## Output Format
 
+Each section is a markdown table with columns: `#`, `Task`, `Source`.
+
+- **Meetings table**: `Source` = meeting title (filename without date prefix and `.md`)
+- **Daily table**: `Source` = the date (YYYY-MM-DD extracted from filename)
+- **Projects table**: `Source` = the file path
+
 ```
-**From Daily Notes**
+### Meetings
 
-1. <task text> *(YYYY-MM-DD)*
-2. <task text> *(YYYY-MM-DD)*
+| # | Task | Source |
+|---|------|--------|
+| 1 | Confirm Glean doc searchability | Teleport and Charon Updates |
+| 2 | Start SailPoint SCIM testing | Teleport and Charon Updates |
 
-**From Meeting Notes**
+### Daily
 
-3. <task description> *(Meeting Title)*
-4. <task description> *(Meeting Title)*
+| # | Task | Source |
+|---|------|--------|
+| 3 | Destroy EC2 instances for Mike Beiter Demo | 2026-02-26 |
 
 ---
 X open items total
 ```
 
-Strip the `[[Name]]:` prefix and wikilink brackets from meeting note tasks for cleaner output.
+Numbers are sequential across all tables (meetings start at 1, daily continues the count, projects continues after that).
+
+Strip the `[[Name]]:` prefix and wikilink brackets from all task text for clean output.
+Strip markdown link syntax (e.g. `[text](url)`) down to just the `text` portion.
 Strip `[[wikilinks]]` formatting from all task text, converting them to plain text.
+Strip the `- [ ] ` checkbox prefix from task text.
