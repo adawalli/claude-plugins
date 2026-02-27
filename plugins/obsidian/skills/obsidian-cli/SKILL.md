@@ -18,6 +18,7 @@ cryptic connection errors until you disable the sandbox. This is not a transient
 hard architectural constraint.
 
 **Before running any `obsidian` command:**
+
 1. Set `dangerouslyDisableSandbox: true` on the Bash tool call
 2. Confirm Obsidian Desktop is open (the CLI requires an active app connection)
 
