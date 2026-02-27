@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Personal Curated Claude Code plugins: skills, workflows, and productivity tools",
-    "version": "1.0.4"
+    "version": "1.0.5"
   },
   "plugins": [
     {
@@ -37,7 +37,7 @@
       "name": "obsidian",
       "source": "./plugins/obsidian",
       "description": "Obsidian vault management via CLI - notes, properties, search, plugins, sync, and developer tools",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "keywords": ["obsidian", "notes", "knowledge-base", "vault", "markdown", "cli"],
       "strict": true
     }
