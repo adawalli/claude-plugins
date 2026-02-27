@@ -21,7 +21,7 @@ The obsidian CLI resolves the active vault automatically - no hardcoded paths ne
 
 ## Owner Name
 
-The default owner is `Adam`. If the user specifies a different name (e.g. "find tasks for Sarah"), use that name instead. The name must match the wikilink tag used in meeting notes (e.g. `[[Sarah]]`).
+Use `$ARGUMENTS` as the owner name if provided (e.g. `/action-items Sarah`). Default to `Adam` when no argument is given. The name must match the wikilink tag used in meeting notes (e.g. `[[Sarah]]`).
 
 ## Retrieval Process
 
