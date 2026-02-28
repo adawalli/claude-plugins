@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(obsidian *)
+allowed-tools: Bash(obsidian *), Read, Edit, mcp__qmd__status, mcp__qmd__search, mcp__qmd__vector_search, mcp__qmd__deep_search, mcp__qmd__get, mcp__qmd__multi_get
 argument-hint: [count=10]
 description: Find and improve orphaned Obsidian notes by enriching frontmatter and adding wikilink connections
 ---
@@ -30,33 +30,44 @@ If QMD is unavailable, tell the user once at the start:
 
 ## Step 1: Discover Orphans
 
-Run `obsidian orphans` to get the full list. Parse the count from `$ARGUMENTS` (default to 10 if empty or not a number). Select that many orphans to process.
+Run `obsidian orphans` to get the full list.
+
+**Filter the list** before selecting notes to process:
+- Skip non-markdown files (images, PDFs, audio, canvases, etc.)
+- Skip `Templates/` directory files
+- Skip `Attachments/` directory files
+- Skip special files: `CLAUDE.md`, `Start Here.md`, `Home.md`
+
+Parse the count from `$ARGUMENTS` (default to 10 if empty or not a number). Select that many orphans from the filtered list, aiming for a diverse mix of topics/locations.
 
 Show the user a numbered list of the selected orphans before proceeding.
 
-## Step 2: For Each Orphan
+## Step 2: Process Orphans in Parallel Batches
 
-Process each note one at a time:
+Process notes in batches of 3-5 to maximize parallelism. Within each batch:
 
-### 2a. Read the Note
+### 2a. Read Notes (parallel)
+
+Read all notes in the batch with parallel `obsidian read` calls.
 
 ```
 obsidian read file="<note name>"
 ```
 
-If `file=` resolution fails, try `path=` with the full path from the orphans list.
+**Important:** `obsidian read` fails silently - if it returns empty output with no error, that means `file=` resolution failed. Immediately retry with `path=` using the full path from the orphans list:
 
-### 2b. Analyze Content
+```
+obsidian read path="3. Resources/Work/Example/Note-name.md"
+```
 
-Understand what the note is about. Identify:
+### 2b. Search for Connections (parallel)
 
-- **Topic/domain** - what subject area does this belong to?
-- **Type** - is it a reference, project, area, meeting, journal entry, daily note?
-- **Key concepts** - extract 3-5 terms that capture what this note is really about
+Fire off all QMD searches for the batch in parallel - don't wait for one note's search before starting the next.
 
-### 2c. Find Related Notes with QMD
+**Two-tier search strategy:**
 
-Use **QMD deep search** (`mcp__qmd__deep_search`) against the `obsidian` collection. Deep search auto-expands queries into variations, runs both keyword and semantic matching, then reranks - good for discovering connections you wouldn't think to search for.
+1. **Start with `search` + `vector_search` in parallel** per orphan (~30ms + ~2s). This covers ~90% of cases.
+2. **Escalate to `deep_search`** (~10s) only when both `search` and `vector_search` miss or return low-confidence results.
 
 **How to query:** Write a natural language description focused on relationships, not just the topic.
 
@@ -67,9 +78,9 @@ Use `collection: "obsidian"`, `limit: 10`. Exclude the orphan itself from result
 
 For the top candidates, use `mcp__qmd__get` to read enough of each to confirm the connection is genuine before creating links.
 
-**Don't force connections.** Not every orphan has a natural backlink waiting for it. If deep search returns nothing convincing, that's fine - the note may just be standalone. In that case, focus on frontmatter enrichment (tags, properties) so the note becomes findable when a real connection emerges later. A well-tagged orphan is better than a contrived wikilink.
+**Don't force connections.** Not every orphan has a natural backlink waiting for it. If search returns nothing convincing, that's fine - the note may just be standalone. In that case, focus on frontmatter enrichment (tags, properties) so the note becomes findable when a real connection emerges later. A well-tagged orphan is better than a contrived wikilink.
 
-### 2d. Obsidian Search (fallback or primary)
+### 2c. Obsidian Search (fallback or primary)
 
 Use `obsidian search query="<terms>"` when:
 - **QMD is unavailable** (Step 0 determined no collection exists) - this becomes the primary search method
@@ -78,7 +89,7 @@ Use `obsidian search query="<terms>"` when:
 
 When this is the primary search method, run multiple searches per orphan with different keyword angles to compensate for the lack of semantic matching. For example, for an aviation training note, try both `obsidian search query="aviation"` and `obsidian search query="pilot training"`.
 
-### 2e. Examine Vault Conventions
+### 2d. Examine Vault Conventions
 
 The vault uses these common frontmatter properties (respect existing conventions):
 
@@ -97,21 +108,28 @@ Common tag hierarchy:
 - `#work`, `#personal`, `#resource`, `#area`, `#project`, `#meeting`, `#archive`
 - Nested: `#work/platform-engineering`, `#work/career`, `#personal/home`, `#personal/finance`, etc.
 
-### 2f. Improve the Note
+### 2e. Improve the Note (parallel within batch)
 
-Prioritize making the note findable over forcing connections.
+Parallelize frontmatter `property:set` calls across notes in the batch. Prioritize making the note findable over forcing connections.
 
 **Frontmatter enrichment (always do this):**
-- Add missing properties that fit the note's content
-- Use `obsidian property:set` to add/update properties
+
+Add missing properties using the exact CLI syntax:
+
+```
+obsidian property:set name="summary" value="Brief description of the note" file="Note Name"
+obsidian property:set name="vault" value="personal" file="Note Name"
+```
+
 - Match existing vault conventions for tag hierarchy and property values
 - Don't overwrite existing properties unless they're clearly wrong
-- Good tags make orphans discoverable even without wikilinks - a note tagged `personal/aviation` will surface when someone is working on aviation topics later
+- Good tags make orphans discoverable even without wikilinks
 
 **Wikilink connections (only when genuine):**
-- If step 2c found genuinely related notes, add `[[wikilinks]]` where they make natural sense
+- If search found genuinely related notes, add `[[wikilinks]]` where they make natural sense
 - Place links in a "Related" or "See also" section, or inline in context
-- Use `obsidian append` to add a related notes section if needed
+- Add a related notes section with: `obsidian append file="Note Name" content="\n\n## Related\n- [[Other Note]] - brief reason"`
+- If a note already has a Related section with placeholder content, use the `Edit` tool (requires `Read` first) to replace the placeholder instead of appending a duplicate section
 - Only link to notes that actually exist in the vault
 - Use the note's **title** (not file path) for the wikilink text
 - Where it makes sense, add a `[[wikilink]]` back from related notes to resolve orphan status
@@ -121,9 +139,15 @@ Prioritize making the note findable over forcing connections.
 - Note it in the summary as "enriched frontmatter, no natural connections found"
 - The note will get linked organically when related content is created later
 
-## Step 3: Verify
+## Step 3: Verify (batch)
 
-After processing each note, run `obsidian backlinks file="<note>"` to confirm it now has at least one incoming link.
+After processing **all** notes, run all `obsidian backlinks` checks in parallel:
+
+```
+obsidian backlinks file="<note>"
+```
+
+This confirms which notes now have incoming links. Do this as a single batch at the end, not after each individual note.
 
 ## Step 4: Summary
 
@@ -145,4 +169,4 @@ Include:
 - Don't force every orphan into a connection - well-tagged standalone notes are a fine outcome
 - Only add frontmatter properties that genuinely apply
 - Ask the user before making changes if you're unsure about a connection
-- Process notes in batches of 3-5, showing progress as you go
+- Maximize parallel tool calls: batch reads, batch searches, batch property:set, batch verification
