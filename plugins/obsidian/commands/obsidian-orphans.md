@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(obsidian *), Read, Edit, mcp__qmd__status, mcp__qmd__search, mcp__qmd__vector_search, mcp__qmd__deep_search, mcp__qmd__get, mcp__qmd__multi_get
+allowed-tools: Bash(obsidian *), Bash(qmd *), Read, Edit, mcp__qmd__status, mcp__qmd__search, mcp__qmd__vector_search, mcp__qmd__deep_search, mcp__qmd__get, mcp__qmd__multi_get
 argument-hint: [count=10]
 description: Find and improve orphaned Obsidian notes by enriching frontmatter and adding wikilink connections
 ---
@@ -174,9 +174,11 @@ Include:
 - Any notes that couldn't be connected (and why)
 - QMD search quality notes (were semantic matches useful?)
 
-After the summary, remind the user to refresh their QMD index since note files were modified:
+After the summary, re-index QMD so future searches reflect the new frontmatter and links:
 
-> Run `qmd update && qmd embed` to re-index the changed notes so future searches reflect the new frontmatter and links.
+```bash
+qmd update && qmd embed
+```
 
 ## Important Guidelines
 

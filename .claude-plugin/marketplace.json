@@ -37,7 +37,7 @@
       "name": "obsidian",
       "source": "./plugins/obsidian",
       "description": "Obsidian vault management via CLI - notes, properties, search, plugins, sync, and developer tools",
-      "version": "1.0.9",
+      "version": "1.0.10",
       "keywords": ["obsidian", "notes", "knowledge-base", "vault", "markdown", "cli"],
       "strict": true
     }
