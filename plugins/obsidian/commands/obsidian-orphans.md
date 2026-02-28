@@ -37,7 +37,7 @@ Run `obsidian orphans` to get the full list.
 - Skip `Templates/` directory files
 - Skip `Attachments/` directory files
 - Skip special files: `CLAUDE.md`, `Start Here.md`, `Home.md`
-- Skip notes that already have an `orphan-reviewed` property (check with `obsidian property:get name="orphan-reviewed" file="<note>"` - if it returns a value, skip that note)
+- Skip notes that already have an `orphan-reviewed` property (check with `obsidian property:read name="orphan-reviewed" file="<note>"` - if it returns a value, skip that note)
 
 Parse the count from `$ARGUMENTS` (default to 10 if empty or not a number). Select that many orphans from the filtered list, aiming for a diverse mix of topics/locations.
 
