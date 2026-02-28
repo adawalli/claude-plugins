@@ -162,6 +162,10 @@ Include:
 - Any notes that couldn't be connected (and why)
 - QMD search quality notes (were semantic matches useful?)
 
+After the summary, remind the user to refresh their QMD index since note files were modified:
+
+> Run `qmd update && qmd embed` to re-index the changed notes so future searches reflect the new frontmatter and links.
+
 ## Important Guidelines
 
 - Be conservative with edits - improve, don't rewrite

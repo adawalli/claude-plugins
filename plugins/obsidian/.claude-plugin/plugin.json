@@ -1,6 +1,6 @@
 {
   "name": "obsidian",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Obsidian vault management via CLI - notes, properties, search, plugins, sync, and developer tools",
   "author": {
     "name": "Adam Wallis"
