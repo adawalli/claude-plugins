@@ -56,16 +56,18 @@ Understand what the note is about. Identify:
 
 ### 2c. Find Related Notes with QMD
 
-Use **QMD semantic search** (`mcp__qmd__vector_search`) against the `obsidian` collection to find thematically related notes. This catches connections that keyword matching would miss - notes that discuss the same concepts but use different vocabulary.
+Use **QMD deep search** (`mcp__qmd__deep_search`) against the `obsidian` collection. Deep search auto-expands queries into variations, runs both keyword and semantic matching, then reranks - good for discovering connections you wouldn't think to search for.
 
-**Search strategy - run in parallel:**
+**How to query:** Write a natural language description focused on relationships, not just the topic.
 
-1. `mcp__qmd__vector_search` - describe the note's core topic in natural language (e.g., "drone pilot certification and aerodynamics training"). Use `collection: "obsidian"`, `limit: 10`, `minScore: 0.4`.
-2. `mcp__qmd__search` - search for 2-3 specific keywords or phrases from the note (e.g., `"Part 107" drone`). Use `collection: "obsidian"`, `limit: 10`.
+- Good: `"notes related to drone pilot certification, aviation training, flight physics, or FAA regulations"`
+- Bad: `"Part 107 training notes"` (just restates the title)
 
-**Combine and deduplicate** results from both searches. Exclude the orphan itself. For the top candidates, use `mcp__qmd__get` to read enough of each to confirm the connection is real.
+Use `collection: "obsidian"`, `limit: 10`. Exclude the orphan itself from results.
 
-**Why QMD over `obsidian search`:** QMD's vector search finds semantically adjacent notes even when they share no keywords. A note about "aerodynamics lift drag" will match notes about "flight physics" or "wing design" that `obsidian search` would miss entirely. The keyword search (`mcp__qmd__search`) complements this with exact-match precision for identifiers, names, and technical terms.
+For the top candidates, use `mcp__qmd__get` to read enough of each to confirm the connection is genuine before creating links.
+
+**Don't force connections.** Not every orphan has a natural backlink waiting for it. If deep search returns nothing convincing, that's fine - the note may just be standalone. In that case, focus on frontmatter enrichment (tags, properties) so the note becomes findable when a real connection emerges later. A well-tagged orphan is better than a contrived wikilink.
 
 ### 2d. Obsidian Search (fallback or primary)
 
@@ -97,25 +99,27 @@ Common tag hierarchy:
 
 ### 2f. Improve the Note
 
-Make two types of improvements:
+Prioritize making the note findable over forcing connections.
 
-**Frontmatter enrichment:**
+**Frontmatter enrichment (always do this):**
 - Add missing properties that fit the note's content
 - Use `obsidian property:set` to add/update properties
 - Match existing vault conventions for tag hierarchy and property values
 - Don't overwrite existing properties unless they're clearly wrong
+- Good tags make orphans discoverable even without wikilinks - a note tagged `personal/aviation` will surface when someone is working on aviation topics later
 
-**Wikilink connections (in the note body):**
-- Add `[[wikilinks]]` to related notes found via QMD
-- Place links naturally in context - in a "Related" or "See also" section, or inline where they make sense
-- Use `obsidian append` to add a related notes section if one doesn't exist
+**Wikilink connections (only when genuine):**
+- If step 2c found genuinely related notes, add `[[wikilinks]]` where they make natural sense
+- Place links in a "Related" or "See also" section, or inline in context
+- Use `obsidian append` to add a related notes section if needed
 - Only link to notes that actually exist in the vault
 - Use the note's **title** (not file path) for the wikilink text
+- Where it makes sense, add a `[[wikilink]]` back from related notes to resolve orphan status
 
-**Wikilink connections (in related notes):**
-- Where it makes sense, add a `[[wikilink]]` back to this orphan from related notes
-- This is what actually resolves the orphan status - incoming links
-- Use `obsidian append file="<related note>" content="\n- [[<orphan note>]]"` or similar
+**When no connections exist:**
+- Don't invent links just to de-orphan. Tags and properties are the right tool here.
+- Note it in the summary as "enriched frontmatter, no natural connections found"
+- The note will get linked organically when related content is created later
 
 ## Step 3: Verify
 
@@ -137,9 +141,8 @@ Include:
 ## Important Guidelines
 
 - Be conservative with edits - improve, don't rewrite
-- Prefer adding links in existing related notes over modifying the orphan itself
+- Frontmatter enrichment is always valuable; wikilinks are only valuable when the connection is real
+- Don't force every orphan into a connection - well-tagged standalone notes are a fine outcome
 - Only add frontmatter properties that genuinely apply
-- Don't invent connections that don't exist - if a note is truly standalone, say so
 - Ask the user before making changes if you're unsure about a connection
 - Process notes in batches of 3-5, showing progress as you go
-- When QMD vector search returns high-confidence matches (score > 0.6), those connections are almost certainly worth linking
