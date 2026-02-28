@@ -37,6 +37,7 @@ Run `obsidian orphans` to get the full list.
 - Skip `Templates/` directory files
 - Skip `Attachments/` directory files
 - Skip special files: `CLAUDE.md`, `Start Here.md`, `Home.md`
+- Skip notes that already have an `orphan-reviewed` property (check with `obsidian property:get name="orphan-reviewed" file="<note>"` - if it returns a value, skip that note)
 
 Parse the count from `$ARGUMENTS` (default to 10 if empty or not a number). Select that many orphans from the filtered list, aiming for a diverse mix of topics/locations.
 
@@ -102,6 +103,7 @@ The vault uses these common frontmatter properties (respect existing conventions
 | `date`     | Date associated with the note                  |
 | `project`  | Associated project name                        |
 | `summary`  | Brief summary of the note                      |
+| `orphan-reviewed` | Date (YYYY-MM-DD) when orphan rescue last processed this note |
 
 Common tag hierarchy:
 
@@ -138,6 +140,16 @@ obsidian property:set name="vault" value="personal" file="Note Name"
 - Don't invent links just to de-orphan. Tags and properties are the right tool here.
 - Note it in the summary as "enriched frontmatter, no natural connections found"
 - The note will get linked organically when related content is created later
+
+**Mark as reviewed (always do this last):**
+
+After all enrichment for a note is complete (frontmatter, wikilinks, or just tags), mark it so it won't be reprocessed:
+
+```
+obsidian property:set name="orphan-reviewed" value="YYYY-MM-DD" file="Note Name"
+```
+
+Use today's date. This goes on every processed note regardless of whether connections were found. Notes with this property are only skipped as orphan candidates - they can still be linked to by other orphans during processing.
 
 ## Step 3: Verify (batch)
 
