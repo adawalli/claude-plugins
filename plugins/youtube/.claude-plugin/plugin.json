@@ -1,6 +1,6 @@
 {
   "name": "youtube",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "YouTube video discovery and ranking - find top videos by composite score using yt-dlp",
   "author": {
     "name": "Adam Wallis"

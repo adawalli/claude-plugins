@@ -4,6 +4,7 @@ interface RawVideo {
   id: string;
   title: string;
   channel: string;
+  description: string | null;
   view_count: number | null;
   like_count: number | null;
   upload_date: string | null; // "YYYYMMDD"
@@ -132,15 +133,18 @@ const scored = videos.map((v, originalIndex) => {
 
 scored.sort((a, b) => b.score - a.score || a.originalIndex - b.originalIndex);
 
+const DESC_MAX = 200;
+
 const results = scored.slice(0, N).map((v) => ({
   id: v.id,
   score: parseFloat(v.score.toFixed(3)),
   title: v.title ?? "Untitled",
   channel: v.channel ?? "Unknown",
+  description: truncate(v.description ?? "", DESC_MAX),
   views: v.view_count ?? 0,
   likes: v.like_count ?? 0,
   age: formatAge(v.daysOld),
   daysOld: Math.floor(v.daysOld),
 }));
 
-console.log(JSON.stringify({ query, total: videos.length, results }));
+console.log(JSON.stringify({ query, total: results.length, results }));
