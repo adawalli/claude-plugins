@@ -55,6 +55,48 @@ techniques
 /plugin install core@adawalli
 ```
 
+### youtube
+
+**Description:** YouTube video discovery and ranking - find top videos by composite score using yt-dlp
+
+**Keywords:** youtube, yt-dlp, video, search, ranking
+
+**Install:**
+
+```bash
+/plugin install youtube@adawalli
+```
+
+**Prerequisites:**
+
+- [bun](https://bun.sh) - TypeScript runtime
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube metadata extractor
+
+```bash
+# Install bun
+curl -fsSL https://bun.sh/install | bash
+
+# Install yt-dlp
+uv tool install "yt-dlp[default]"
+# or: brew install yt-dlp
+# or: pip install yt-dlp
+```
+
+**Usage:**
+
+```
+/youtube-top-videos rust async programming 5
+/youtube-top-videos sourdough bread baking
+```
+
+Searches YouTube for up to 25 candidates and ranks them by a composite score based on views (30%), likes (25%), recency (25%), and channel followers (20%). Returns a markdown table of the top N results (default 10).
+
+Pass `--debug` for detailed scoring breakdown:
+
+```
+/youtube-top-videos python tutorial 5 --debug
+```
+
 ## Managing Plugins
 
 ### Enable/Disable

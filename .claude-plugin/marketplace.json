@@ -40,6 +40,14 @@
       "version": "1.0.10",
       "keywords": ["obsidian", "notes", "knowledge-base", "vault", "markdown", "cli"],
       "strict": true
+    },
+    {
+      "name": "youtube",
+      "source": "./plugins/youtube",
+      "description": "YouTube video discovery and ranking - find top videos by composite score using yt-dlp",
+      "version": "1.0.0",
+      "keywords": ["youtube", "yt-dlp", "video", "search", "ranking"],
+      "strict": true
     }
   ]
 }
