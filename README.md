@@ -85,8 +85,8 @@ uv tool install "yt-dlp[default]"
 **Usage:**
 
 ```
-/youtube-top-videos rust async programming 5
-/youtube-top-videos sourdough bread baking
+/youtube-top-videos top 10 videos on connecting NotebookLM to Claude Code
+/youtube-top-videos best talks on AI agent architectures 5
 ```
 
 Expands your query into 3 search variations, fetches up to 25 candidates per variation via yt-dlp, filters out irrelevant results, deduplicates, and ranks by a composite score based on views (30%), engagement (25%), recency (25%), and channel authority (20%). Returns a markdown table of the top N results (default 10).
