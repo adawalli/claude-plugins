@@ -45,7 +45,7 @@
       "name": "youtube",
       "source": "./plugins/youtube",
       "description": "YouTube video discovery and ranking - find top videos by composite score using yt-dlp",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "keywords": ["youtube", "yt-dlp", "video", "search", "ranking"],
       "strict": true
     }

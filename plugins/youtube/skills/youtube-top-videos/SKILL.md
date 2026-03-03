@@ -11,9 +11,15 @@ Find the top N YouTube videos for a query, ranked by a composite quality score.
 
 Parse `$ARGUMENTS` for the search query and optional result count N (default 10).
 
-Launch the `video-ranker` agent with a prompt like:
+**Resolve script paths:** This skill's base directory is shown in the system reminder. The plugin's scripts directory is two levels up from the skill base directory, under `scripts/`. Compute the absolute paths to `rank-videos.ts` and `merge-results.ts`.
+
+Launch the `video-ranker` agent with a prompt that includes:
 
 > Search YouTube for the top N videos about: {query}
+>
+> Script paths (use these exactly):
+> - Rank: {resolved_scripts_dir}/rank-videos.ts
+> - Merge: {resolved_scripts_dir}/merge-results.ts
 
 The agent handles query expansion, searching, relevance filtering, deduplication, and presenting the final ranked table.
 
