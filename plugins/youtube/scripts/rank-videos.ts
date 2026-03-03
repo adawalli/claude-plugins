@@ -132,25 +132,15 @@ const scored = videos.map((v, originalIndex) => {
 
 scored.sort((a, b) => b.score - a.score || a.originalIndex - b.originalIndex);
 
-const results = scored.slice(0, N);
+const results = scored.slice(0, N).map((v) => ({
+  id: v.id,
+  score: parseFloat(v.score.toFixed(3)),
+  title: v.title ?? "Untitled",
+  channel: v.channel ?? "Unknown",
+  views: v.view_count ?? 0,
+  likes: v.like_count ?? 0,
+  age: formatAge(v.daysOld),
+  daysOld: Math.floor(v.daysOld),
+}));
 
-console.log("| # | Score | Title | Channel | Views | Likes | Age | Link |");
-console.log("|---|-------|-------|---------|-------|-------|-----|------|");
-
-results.forEach((v, i) => {
-  const row = [
-    i + 1,
-    v.score.toFixed(3),
-    v.title ?? "Untitled",
-    v.channel ?? "Unknown",
-    formatNumber(v.view_count ?? 0),
-    formatNumber(v.like_count ?? 0),
-    formatAge(v.daysOld),
-    `https://youtube.com/watch?v=${v.id}`,
-  ];
-  console.log(`| ${row.join(" | ")} |`);
-});
-
-if (videos.length < N) {
-  console.log(`\n_Note: only ${videos.length} results found (requested ${N})._`);
-}
+console.log(JSON.stringify({ query, total: videos.length, results }));
