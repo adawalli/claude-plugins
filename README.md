@@ -89,13 +89,7 @@ uv tool install "yt-dlp[default]"
 /youtube-top-videos sourdough bread baking
 ```
 
-Searches YouTube for up to 25 candidates and ranks them by a composite score based on views (30%), likes (25%), recency (25%), and channel followers (20%). Returns a markdown table of the top N results (default 10).
-
-Pass `--debug` for detailed scoring breakdown:
-
-```
-/youtube-top-videos python tutorial 5 --debug
-```
+Expands your query into 3 search variations, fetches up to 25 candidates per variation via yt-dlp, filters out irrelevant results, deduplicates, and ranks by a composite score based on views (30%), engagement (25%), recency (25%), and channel authority (20%). Returns a markdown table of the top N results (default 10).
 
 ## Managing Plugins
 
