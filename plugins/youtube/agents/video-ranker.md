@@ -36,30 +36,23 @@ You are a YouTube video search and ranking agent. Your job is to find the best Y
 
    Always request 25 results per run to maximize the candidate pool for filtering.
 
-3. **Parse and filter results:**
-   - Parse each run's stdout as JSON: `{ query, total, results }`
-   - Each result has: id, score, title, channel, description, views, likes, age, daysOld
-   - **Relevance filter**: Use the title and description to remove videos that are clearly not about the user's intended topic. Be conservative - only remove obvious mismatches, not borderline results.
+3. **Relevance filter:** Parse each run's stdout as JSON (`{ query, total, results }`). Read the title and description of every video. Remove videos that are clearly not about the user's intended topic. Be conservative - only remove obvious mismatches, not borderline results. After filtering, collect the 3 result objects (with their filtered results arrays) into a single JSON array.
 
-4. **Merge and deduplicate:**
-   - Deduplicate by `id` field - keep the entry with the highest score
-   - Add +0.03 bonus for each additional appearance across query variations
-   - Sort by adjusted score descending
-   - Take top N results
+4. **Merge and rank:** Pipe the JSON array through the merge script:
 
-5. **Return a single markdown table:**
+   ```bash
+   echo '<json-array-of-3-result-objects>' | bun run ${CLAUDE_PLUGIN_ROOT}/scripts/merge-results.ts N --table
+   ```
 
-   | # | Score | Title | Channel | Views | Likes | Age | Link |
+   Where N is the requested result count. The script handles deduplication, scoring bonuses for videos found in multiple queries, sorting, and table formatting.
 
-   Where Link is `https://youtube.com/watch?v={id}`.
-
-   After the table, add a brief summary noting patterns (common themes, recency trends, standout channels) and mention which query variations you used.
-
-   If you filtered out any results for relevance, briefly note what was removed and why.
+5. **Present:** Output the table from the merge script verbatim. Then add a brief 2-3 sentence summary noting patterns (common themes, recency trends, standout channels). If any results were filtered for relevance, briefly note what was removed.
 
 **Important:**
 
 - Run all 3 searches in parallel for speed
 - Be conservative when filtering - only remove clearly irrelevant results
-- Do NOT include the raw description text in your final output table
+- Do NOT do any numerical sorting yourself - the merge script handles it
+- In your summary, reference videos by TITLE, never by number or position
 - Keep your summary concise (2-3 sentences)
+- Do NOT include raw description text in output

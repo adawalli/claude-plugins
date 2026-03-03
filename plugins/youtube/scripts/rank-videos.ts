@@ -107,7 +107,9 @@ log(`fetched ${videos.length} videos`);
 const maxViews = Math.max(...videos.map((v) => v.view_count ?? 0));
 const maxFollowers = Math.max(...videos.map((v) => v.channel_follower_count ?? 0));
 
-log(`normalization: maxViews=${formatNumber(maxViews)}, maxFollowers=${formatNumber(maxFollowers)}`);
+log(
+  `normalization: maxViews=${formatNumber(maxViews)}, maxFollowers=${formatNumber(maxFollowers)}`,
+);
 
 // Weights: views 30%, likes 25%, recency 25%, channel followers 20%
 const scored = videos.map((v, originalIndex) => {
