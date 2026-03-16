@@ -54,18 +54,20 @@ Best-effort - skip if no specs or plans exist or none match.
 
 ### Step 3: Spawn review agents
 
-Launch all four agents in parallel using the Agent tool with `model: sonnet`. Each agent receives:
+Launch all six agents in parallel using the Agent tool with `model: sonnet`. Each agent receives:
 - The full combined diff (committed + uncommitted)
 - The list of changed files
 - The project's CLAUDE.md contents
 - The branch name and a brief summary of what the changes appear to do
 
-The four review agents are registered at the plugin level:
+The six review agents are registered at the plugin level:
 
-1. **`review-code-quality`** - CLAUDE.md compliance, patterns, conventions, DRY, clarity
+1. **`review-code-quality`** - CLAUDE.md compliance, patterns, conventions, DRY, clarity, redundant state, parameter sprawl, leaky abstractions, stringly-typed code
 2. **`review-testing`** - Test coverage gaps, test quality, missing edge cases
 3. **`review-security`** - Injection, validation, auth, data exposure
 4. **`review-architecture`** - Project patterns, spec alignment, schema consistency (include spec content if found in step 2)
+5. **`review-reuse`** - Searches codebase for existing utilities, helpers, and patterns that could replace newly written code
+6. **`review-efficiency`** - Unnecessary work, missed concurrency, hot-path bloat, N+1 patterns, memory issues
 
 Each agent has tools: Read, Grep, Glob, Bash (for git commands only). They can and should inspect actual source files for context beyond the diff.
 
@@ -135,4 +137,4 @@ Verdict logic:
 - **ALMOST**: No critical issues, but has important ones
 - **NOT YET**: Has critical issues
 
-If no issues survived validation: "No issues found. Checked for bugs, CLAUDE.md compliance, testing, security, and architecture."
+If no issues survived validation: "No issues found. Checked for bugs, CLAUDE.md compliance, testing, security, architecture, code reuse, and efficiency."
