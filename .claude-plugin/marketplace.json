@@ -13,8 +13,8 @@
       "name": "core",
       "source": "./plugins/core",
       "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
-      "version": "1.1.4",
-      "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows"],
+      "version": "1.1.5",
+      "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows", "code-review"],
       "strict": true
     },
     {
