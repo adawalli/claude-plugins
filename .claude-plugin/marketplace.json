@@ -48,6 +48,14 @@
       "version": "1.0.6",
       "keywords": ["youtube", "yt-dlp", "video", "search", "ranking"],
       "strict": true
+    },
+    {
+      "name": "cassette",
+      "source": "./plugins/cassette",
+      "description": "Cassette meeting transcript processing - create flows, write prompts, debug configs, and generate structured meeting notes",
+      "version": "1.0.0",
+      "keywords": ["cassette", "meetings", "transcripts", "flows", "prompts", "markdown"],
+      "strict": true
     }
   ]
 }

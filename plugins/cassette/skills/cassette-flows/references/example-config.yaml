@@ -1,0 +1,117 @@
+# Real-world cassette config example
+# Two-step flow: clean raw transcript, then summarize with structured output
+#
+# This config demonstrates:
+# - Intake from Downloads (auto-move VTT/JSON files)
+# - Prompt chaining (clean -> summarize)
+# - Structured output with YAML front matter
+# - Name correction hints for transcription errors
+# - Domain-specific term glossary
+# - macOS notification on completion
+# - Copying final output to a second location (e.g., a notes app vault)
+
+intake:
+  source_dir: ~/Downloads/
+  include_glob: "**/*.{vtt,meeting.json}"
+  exclude_glob: []
+  delete_source: true
+
+watch:
+  root_dir: ~/Documents/meetings
+  stable_window_ms: 15000
+  include_glob: "**/*.{json,vtt}"
+  exclude_glob:
+    - "**/_failed/**"
+
+output:
+  markdown_suffix: ".md"
+  overwrite: false
+  # copy_to: ~/path/to/notes/Meetings  # optional: copy final output elsewhere
+
+failure:
+  move_failed: true
+  failed_dir_name: "_failed"
+  write_error_log: true
+
+llm:
+  base_url: "https://api.openai.com/v1/"
+  model: "gpt-4o"
+  temperature: 0.1
+  max_tokens: 12000
+  timeout_ms: 120000
+  retries: 3
+
+transcript:
+  path: "$[*]"
+  speaker_field: "speaker"
+  text_field: "text"
+
+steps:
+  - name: clean
+    suffix: ".cleaned.md"
+    notify: false
+    prompt: |
+      You are a meeting transcript editor. Clean up this raw transcript:
+      1. Fix obvious transcription errors and filler words (um, uh, like, you know)
+      2. Merge fragmented sentences into complete thoughts
+      3. Preserve speaker labels and the chronological order
+      4. Add a YAML front matter block with: date, participants, meeting type, and a 2-3 sentence summary
+      5. Keep the full cleaned transcript below these sections
+      6. Output as Markdown
+
+      Do NOT invent information. Only include what is in the transcript.
+
+      <notes_for_ai>
+      <names>
+        <explanation>
+          Add proper spelling of names that the transcription software often
+          gets wrong. This helps the LLM correct misspellings consistently.
+        </explanation>
+        - Sarah (not Sara)
+        - Miguel (not Michael)
+        - Priya (not Prya)
+      </names>
+      </notes_for_ai>
+
+  - name: summarize
+    suffix: ".summary.md"
+    notify: true
+    prompt: |
+      Summarize this transcript. Remove pleasantries. Structure in markdown.
+
+      First, output a YAML front matter block with exactly these fields:
+      ---
+      date: YYYY-MM-DD
+      people:
+        - Full Name (one entry per speaker)
+      summary: one or two sentence overview of the meeting
+      tags: [meeting]
+      ---
+
+      Then provide a disclaimer in italics that this summary is AI-generated
+      and could contain errors.
+
+      Then these sections (omit any that have no meaningful content):
+      # Key Points
+      # Detailed Summary of the Meeting
+      # Remaining Questions
+        - Open questions that were not resolved in the meeting
+      # Action Items
+        - Use "- [ ] Owner: task (deadline)" checkbox format
+
+      <notes_for_ai>
+      <explanation>
+        Add domain-specific terms, acronyms, or product names so the LLM
+        can recognize and spell them correctly in the summary.
+      </explanation>
+      <terms>
+        - JIRA - project tracking tool
+        - Confluence - wiki/documentation platform
+      </terms>
+      </notes_for_ai>
+
+on_complete:
+  command:
+    '/opt/homebrew/bin/terminal-notifier -title "Cassette" -message "Transcribed {{input}}" -open
+    "file://{{output}}"'
+  timeout_ms: 10000
