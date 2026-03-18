@@ -1,0 +1,10 @@
+{
+  "name": "cassette",
+  "version": "1.0.0",
+  "description": "Cassette meeting transcript processing - create flows, write prompts, debug configs, and generate Obsidian-formatted meeting notes",
+  "author": {
+    "name": "Adam Wallis"
+  },
+  "repository": "https://github.com/adawalli/claude-plugins.git",
+  "keywords": ["cassette", "meetings", "transcripts", "obsidian", "flows", "prompts"]
+}
