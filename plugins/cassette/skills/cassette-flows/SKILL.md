@@ -16,7 +16,7 @@ Global install gives you a `cassette` command, but `bunx`/`npx` works just as we
 
 ## What you can help with
 
-1. **Create new configs from scratch** - walk the user through setting up their first `config.yaml`
+1. **Create new configs** - run `cassette init` and walk the user through customizing their `config.yaml`
 2. **Design prompt chains** - help write and iterate on the LLM prompts used in processing steps
 3. **Add or modify steps** - extend an existing flow with new processing stages
 4. **Debug failures** - diagnose why transcripts fail, inspect error logs, validate config
@@ -53,35 +53,53 @@ Files are processed serially (one at a time) to avoid overwhelming the LLM endpo
 
 ## Creating a new config
 
-When the user wants to set up cassette from scratch, gather this info:
+Start with `cassette init` to generate a starter config, then modify it based on the user's needs. This is faster and less error-prone than writing a config from scratch.
 
-1. **Where do transcripts come from?** This determines format and whether intake is needed
-   - MacWhisper: JSON with root array, fields `speaker` + `text`
-   - Otter.ai: different JSON structure
-   - Zoom/Teams/Meet: typically VTT format (no transcript config needed)
-   - Other: ask about the JSON structure or file format
+### Step 1: Generate the starter config
 
-2. **How do transcripts get to cassette?** This determines whether intake is needed
-   - If the user's transcription tool exports directly to a specific folder, or they manually drop files into one location, just set that as `watch.root_dir` - no intake needed. This is the simpler setup and the right default when the user has a reliable drop location.
-   - If transcripts land somewhere inconvenient (like ~/Downloads mixed with other files), intake watches that messy source directory, picks out transcript files by glob pattern, and moves them into `watch.root_dir` organized by week. This is useful when the user can't control where files initially appear.
+```bash
+# generates ~/.config/cassette/config.yaml
+bunx @cassette-meetings/cli init
 
-3. **Where should transcripts live?** This sets `watch.root_dir`. If not using intake, this is where the user drops files directly.
+# or with a custom path
+bunx @cassette-meetings/cli init --config ~/path/to/config.yaml
 
-4. **What LLM endpoint?** OpenAI, Azure, or any OpenAI-compatible API. Sets `llm.base_url` and `llm.model`
+# overwrite an existing config
+bunx @cassette-meetings/cli init --force
+```
 
-5. **What should the output look like?** This drives the prompt design:
-   - Plain markdown summary
+The starter config includes sensible defaults: a single-prompt flow, `~/Documents/meetings` as the watch directory, and commented-out sections for intake and on_complete hooks.
+
+### Step 2: Gather user needs
+
+Ask the user these questions to know what to change in the generated config:
+
+1. **Where do transcripts come from?** This determines format and transcript extraction settings.
+   - **VTT (Teams, Zoom, Meet)** - the most common format. VTT files are parsed natively, so no transcript extraction tuning is needed. However, the `transcript` section must still exist in the config (cassette validates it even for VTT-only workflows - just leave the defaults).
+   - **JSON (MacWhisper, Otter, etc.)** - needs `transcript.path`, `transcript.speaker_field`, and `transcript.text_field` configured to match the JSON structure. MacWhisper typically uses a root array with `speaker` + `text` fields.
+   - **Other** - ask about the file format and JSON structure
+
+2. **How do transcripts get to cassette?**
+   - If the user drops files into a known folder (or a tool exports there), just set that as `watch.root_dir` - no intake needed. This is the simpler default.
+   - If transcripts land somewhere messy (like ~/Downloads), enable the `intake` section to auto-move matching files into `watch.root_dir` organized by week.
+
+3. **What LLM endpoint?** Any OpenAI-compatible API works. Sets `llm.base_url` and `llm.model`. The user needs an API key set as `OPENAI_API_KEY` in their environment.
+
+4. **What should the output look like?** This drives the prompt design:
+   - Plain markdown summary (the starter config default)
    - Obsidian-formatted with YAML front matter and wikilinks
-   - Specific template the user has in mind
-   - Multi-step (clean first, then summarize)
+   - A specific template the user has in mind
+   - Multi-step (clean first, then summarize) - replace the single `prompt:` with a `steps:` array
 
-6. **Any special needs?**
+5. **Any special needs?**
    - Name corrections (common with transcription software)
    - Domain-specific terms or acronyms
    - Notifications on completion
-   - Copying output to a second location
+   - Copying output to a second location (see `output.copy_to`)
 
-Then generate the config using the schema reference for correct field names and types.
+### Step 3: Modify the generated config
+
+Read the generated config, apply the user's answers, and write it back. Use the config schema reference for exact field names and types. For multi-step flows, replace the `prompt:` field with a `steps:` array - the example config shows a complete two-step clean-then-summarize setup.
 
 ## Writing good cassette prompts
 
@@ -121,6 +139,19 @@ The most common pattern is clean-then-summarize:
 
 Each step gets the previous step's output as input, so step 2 works with clean text rather than raw transcript noise.
 
+### Understanding output files
+
+Each step writes its own output file using the step's `suffix` field. For a source file called `standup-2026-03-18.vtt` with a two-step flow:
+
+| Step | Suffix | Output file |
+| --- | --- | --- |
+| clean | `.cleaned.md` | `standup-2026-03-18.cleaned.md` |
+| summarize | `.summary.md` | `standup-2026-03-18.summary.md` |
+
+All output files land in the same directory as the source transcript. The last step's output is what `on_complete` and `copy_to` reference. The intermediate files (like the cleaned transcript) stick around for debugging but the final summary is the one the user typically cares about.
+
+For a single-prompt config (no steps), the output uses `output.markdown_suffix` (default `.md`).
+
 ### Obsidian-formatted output
 
 When the user wants Obsidian-compatible notes, include in the prompt:
@@ -144,12 +175,20 @@ Common problems and where to look:
 | Empty/garbled output    | Wrong `transcript.path` or field names                   | Check JSON structure, adjust JSONPath                               |
 | Files stuck processing  | `stable_window_ms` too high, or file still being written | Lower the value, or wait for the source app to finish               |
 | Moved to `_failed/`     | LLM error or extraction failure                          | Read the `.error.log` next to the failed file                       |
+| Sandbox blocks API call | Claude Code sandbox restricts outbound network           | Run cassette outside the sandbox, or allow the LLM endpoint host    |
+| Permission denied        | File or directory not writable                           | Check directory permissions on `watch.root_dir` and output paths    |
 
 To inspect a failure:
 
 1. Check the `_failed/` directory in `watch.root_dir`
 2. Read the `.error.log` file next to the quarantined transcript
 3. Run `cassette --debug --once` to see verbose output for all pending files
+
+### Sandbox and permission gotchas
+
+When cassette (or a tool invoking cassette) runs inside Claude Code's sandbox, outbound network requests to the LLM endpoint may be blocked. Symptoms include timeouts or connection refused errors that work fine outside the sandbox. Either run cassette outside the sandbox, or add the LLM endpoint host to the sandbox allow list.
+
+Similarly, if `watch.root_dir`, `output.copy_to`, or the intake source directory lives outside the sandbox's writable paths, cassette will fail with permission errors. This is common with iCloud directories (`~/Library/Mobile Documents/...`) or paths under `/Library/`. Check directory permissions and sandbox write rules if cassette reports access errors on paths you know exist.
 
 ## Validating a config
 
@@ -159,8 +198,17 @@ After writing or editing a config, do a quick sanity check:
 2. Confirm `watch.root_dir` exists or will be created
 3. If using intake, confirm `intake.source_dir` exists
 4. Check that `llm.base_url` ends with `/`
-5. If using `copy_to`, confirm the destination path exists
+5. If using `copy_to`, confirm the destination path exists (see below)
 6. Remind the user to set `OPENAI_API_KEY` in their environment
+
+### Copying output to a second location
+
+The `output.copy_to` field sends the final output file to a second directory after processing. This is useful when the user wants processed notes in a different location from the raw transcripts - for example, a notes app vault, a shared team folder, or a synced directory. Only the last step's output gets copied (not intermediate files). The destination directory must already exist.
+
+```yaml
+output:
+  copy_to: ~/path/to/notes/Meetings
+```
 
 The user can test with: `cassette --debug --once` to process existing files and see verbose output.
 
