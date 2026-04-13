@@ -17,49 +17,49 @@ v1.12.4.
 ### List Plugins
 
 ```
-obsidian plugins                                # all installed plugins
-obsidian plugins filter=core                    # core plugins only
-obsidian plugins filter=community               # community plugins only
-obsidian plugins versions                       # include version numbers
-obsidian plugins format=json                    # JSON output
+/usr/local/bin/obsidian plugins                                # all installed plugins
+/usr/local/bin/obsidian plugins filter=core                    # core plugins only
+/usr/local/bin/obsidian plugins filter=community               # community plugins only
+/usr/local/bin/obsidian plugins versions                       # include version numbers
+/usr/local/bin/obsidian plugins format=json                    # JSON output
 
-obsidian plugins:enabled                        # enabled plugins only
-obsidian plugins:enabled filter=community versions
+/usr/local/bin/obsidian plugins:enabled                        # enabled plugins only
+/usr/local/bin/obsidian plugins:enabled filter=community versions
 ```
 
 ### Plugin Info
 
 ```
-obsidian plugin id="dataview"                   # plugin details
+/usr/local/bin/obsidian plugin id="dataview"                   # plugin details
 ```
 
 ### Install/Uninstall Community Plugins
 
 ```
-obsidian plugin:install id="dataview"           # install
-obsidian plugin:install id="dataview" enable    # install and enable
-obsidian plugin:uninstall id="dataview"         # uninstall
+/usr/local/bin/obsidian plugin:install id="dataview"           # install
+/usr/local/bin/obsidian plugin:install id="dataview" enable    # install and enable
+/usr/local/bin/obsidian plugin:uninstall id="dataview"         # uninstall
 ```
 
 ### Enable/Disable
 
 ```
-obsidian plugin:enable id="dataview"            # enable
-obsidian plugin:disable id="dataview"           # disable
+/usr/local/bin/obsidian plugin:enable id="dataview"            # enable
+/usr/local/bin/obsidian plugin:disable id="dataview"           # disable
 ```
 
 ### Developer: Reload Plugin
 
 ```
-obsidian plugin:reload id="my-plugin"           # reload for development
+/usr/local/bin/obsidian plugin:reload id="my-plugin"           # reload for development
 ```
 
 ### Restricted Mode
 
 ```
-obsidian plugins:restrict                       # check restricted mode status
-obsidian plugins:restrict on                    # enable restricted mode
-obsidian plugins:restrict off                   # disable restricted mode
+/usr/local/bin/obsidian plugins:restrict                       # check restricted mode status
+/usr/local/bin/obsidian plugins:restrict on                    # enable restricted mode
+/usr/local/bin/obsidian plugins:restrict off                   # disable restricted mode
 ```
 
 ## Themes
@@ -67,41 +67,41 @@ obsidian plugins:restrict off                   # disable restricted mode
 ### List Themes
 
 ```
-obsidian themes                                 # installed themes
-obsidian themes versions                        # with version numbers
+/usr/local/bin/obsidian themes                                 # installed themes
+/usr/local/bin/obsidian themes versions                        # with version numbers
 ```
 
 ### Current Theme
 
 ```
-obsidian theme                                  # active theme info
-obsidian theme name="Minimal"                   # specific theme details
+/usr/local/bin/obsidian theme                                  # active theme info
+/usr/local/bin/obsidian theme name="Minimal"                   # specific theme details
 ```
 
 ### Install/Set/Uninstall
 
 ```
-obsidian theme:install name="Minimal"           # install theme
-obsidian theme:install name="Minimal" enable    # install and activate
-obsidian theme:set name="Minimal"               # activate installed theme
-obsidian theme:set name=""                       # reset to default
-obsidian theme:uninstall name="Minimal"         # uninstall theme
+/usr/local/bin/obsidian theme:install name="Minimal"           # install theme
+/usr/local/bin/obsidian theme:install name="Minimal" enable    # install and activate
+/usr/local/bin/obsidian theme:set name="Minimal"               # activate installed theme
+/usr/local/bin/obsidian theme:set name=""                       # reset to default
+/usr/local/bin/obsidian theme:uninstall name="Minimal"         # uninstall theme
 ```
 
 ### Toggle Light/Dark
 
 ```
-obsidian command id=theme:toggle-light-dark     # toggle mode
-obsidian command id=theme:switch                # switch theme
+/usr/local/bin/obsidian command id=theme:toggle-light-dark     # toggle mode
+/usr/local/bin/obsidian command id=theme:switch                # switch theme
 ```
 
 ## CSS Snippets
 
 ```
-obsidian snippets                               # list installed snippets
-obsidian snippets:enabled                       # list enabled snippets
-obsidian snippet:enable name="custom"           # enable snippet
-obsidian snippet:disable name="custom"          # disable snippet
+/usr/local/bin/obsidian snippets                               # list installed snippets
+/usr/local/bin/obsidian snippets:enabled                       # list enabled snippets
+/usr/local/bin/obsidian snippet:enable name="custom"           # enable snippet
+/usr/local/bin/obsidian snippet:disable name="custom"          # disable snippet
 ```
 
 ## Sync
@@ -109,30 +109,30 @@ obsidian snippet:disable name="custom"          # disable snippet
 ### Control Sync
 
 ```
-obsidian sync:status                            # show sync status
-obsidian sync on                                # resume sync
-obsidian sync off                               # pause sync
+/usr/local/bin/obsidian sync:status                            # show sync status
+/usr/local/bin/obsidian sync on                                # resume sync
+/usr/local/bin/obsidian sync off                               # pause sync
 ```
 
 ### Sync History
 
 ```
-obsidian sync:history file="Note"               # sync version history
-obsidian sync:history file="Note" total         # version count
-obsidian sync:read file="Note" version=1        # read sync version
-obsidian sync:restore file="Note" version=3     # restore sync version
-obsidian sync:open file="Note"                  # open sync history UI
-obsidian sync:deleted                           # list deleted files in sync
-obsidian sync:deleted total                     # deleted file count
+/usr/local/bin/obsidian sync:history file="Note"               # sync version history
+/usr/local/bin/obsidian sync:history file="Note" total         # version count
+/usr/local/bin/obsidian sync:read file="Note" version=1        # read sync version
+/usr/local/bin/obsidian sync:restore file="Note" version=3     # restore sync version
+/usr/local/bin/obsidian sync:open file="Note"                  # open sync history UI
+/usr/local/bin/obsidian sync:deleted                           # list deleted files in sync
+/usr/local/bin/obsidian sync:deleted total                     # deleted file count
 ```
 
 ### Sync Commands
 
 ```
-obsidian command id=sync:open-sync-view         # open sync view
-obsidian command id=sync:open-sync-log          # open sync log
-obsidian command id=sync:setup                  # setup sync
-obsidian command id=sync:view-version-history   # view version history
+/usr/local/bin/obsidian command id=sync:open-sync-view         # open sync view
+/usr/local/bin/obsidian command id=sync:open-sync-log          # open sync log
+/usr/local/bin/obsidian command id=sync:setup                  # setup sync
+/usr/local/bin/obsidian command id=sync:view-version-history   # view version history
 ```
 
 ## File History
@@ -140,18 +140,18 @@ obsidian command id=sync:view-version-history   # view version history
 Local file recovery (separate from sync):
 
 ```
-obsidian history file="Note"                    # list local versions
-obsidian history:list                            # files with history
-obsidian history:read file="Note"               # read latest version (default: 1)
-obsidian history:read file="Note" version=3     # read specific version
-obsidian history:restore file="Note" version=2  # restore version
-obsidian history:open file="Note"               # open file recovery UI
+/usr/local/bin/obsidian history file="Note"                    # list local versions
+/usr/local/bin/obsidian history:list                            # files with history
+/usr/local/bin/obsidian history:read file="Note"               # read latest version (default: 1)
+/usr/local/bin/obsidian history:read file="Note" version=3     # read specific version
+/usr/local/bin/obsidian history:restore file="Note" version=2  # restore version
+/usr/local/bin/obsidian history:open file="Note"               # open file recovery UI
 ```
 
 ### File Recovery Command
 
 ```
-obsidian command id=file-recovery:open          # open file recovery
+/usr/local/bin/obsidian command id=file-recovery:open          # open file recovery
 ```
 
 ## Diff
@@ -159,8 +159,8 @@ obsidian command id=file-recovery:open          # open file recovery
 Compare file versions:
 
 ```
-obsidian diff file="Note"                       # list all versions
-obsidian diff file="Note" filter=local          # local versions only
-obsidian diff file="Note" filter=sync           # sync versions only
-obsidian diff file="Note" from=1 to=3           # diff between versions
+/usr/local/bin/obsidian diff file="Note"                       # list all versions
+/usr/local/bin/obsidian diff file="Note" filter=local          # local versions only
+/usr/local/bin/obsidian diff file="Note" filter=sync           # sync versions only
+/usr/local/bin/obsidian diff file="Note" from=1 to=3           # diff between versions
 ```

@@ -8,9 +8,9 @@ argument-hint: "[name] [vault=VaultName]"
 
 Retrieves all open action items across the Obsidian vault - combining tasks assigned by name in meeting notes with personal todos from daily notes.
 
-## CRITICAL: Sandbox Requirement
+## CLI Path
 
-Every `obsidian` command MUST be run with `dangerouslyDisableSandbox: true`. No exceptions. The obsidian CLI uses Unix socket IPC which the sandbox blocks.
+Always invoke the CLI via `/usr/local/bin/obsidian` (full path required for sandbox compatibility).
 
 ## Vault Structure
 
@@ -39,10 +39,10 @@ The owner name must match the wikilink tag used in meeting notes (e.g. `[[Sarah]
 
 ### Step 1: Meeting Note Action Items
 
-Run `obsidian tasks todo` and filter for tasks tagged with the owner's name. Replace `OWNER` with the resolved name:
+Run `/usr/local/bin/obsidian tasks todo` and filter for tasks tagged with the owner's name. Replace `OWNER` with the resolved name:
 
 ```bash
-obsidian tasks todo format=json 2>&1 | jq --arg name "OWNER" '[.[] | select(.text | test("\\[\\[\($name)\\]\\]"))]'
+/usr/local/bin/obsidian tasks todo format=json 2>&1 | jq --arg name "OWNER" '[.[] | select(.text | test("\\[\\[\($name)\\]\\]"))]'
 ```
 
 This returns tasks of the form `- [ ] [[OWNER]]: <description>` found across all notes.
@@ -52,7 +52,7 @@ This returns tasks of the form `- [ ] [[OWNER]]: <description>` found across all
 Daily notes use first-person tasks (no name tag). Only include these when the owner is the default user (Adam). Filter by file path:
 
 ```bash
-obsidian tasks todo format=json 2>&1 | jq '[.[] | select(.file | startswith("Daily/")) | select(.text | length > 6)]'
+/usr/local/bin/obsidian tasks todo format=json 2>&1 | jq '[.[] | select(.file | startswith("Daily/")) | select(.text | length > 6)]'
 ```
 
 The `length > 6` check filters out empty checkboxes (`- [ ] ` is 6 chars).

@@ -6,37 +6,23 @@ description: "Operate Obsidian vaults via the `obsidian` CLI - create/read/edit 
 # Obsidian CLI
 
 CLI reference based on Obsidian v1.12.4 (installer 1.11.7). All commands:
-`obsidian <command> [options]`.
+`/usr/local/bin/obsidian <command> [options]`.
 
-## CRITICAL: Sandbox Requirement
+## CLI Path
 
-**Every `obsidian` command MUST be run with `dangerouslyDisableSandbox: true`. No exceptions.**
-
-The `obsidian` CLI communicates with the running Obsidian Desktop app via a Unix socket (IPC).
-The Claude Code sandbox blocks Unix socket access entirely - commands will fail silently or with
-cryptic connection errors until you disable the sandbox. This is not a transient issue; it is a
-hard architectural constraint.
-
-**Before running any `obsidian` command:**
-
-1. Set `dangerouslyDisableSandbox: true` on the Bash tool call
-2. Confirm Obsidian Desktop is open (the CLI requires an active app connection)
-
-`dangerouslyDisableSandbox: true` does not bypass the user's permission model - the user will
-still be prompted to approve the command before it runs. It only removes the filesystem/network
-sandbox that prevents Unix socket access.
-
-Attempting `obsidian` commands without disabling the sandbox will always fail.
+Always invoke the CLI via its full path: `/usr/local/bin/obsidian`. This is required for
+sandbox compatibility. Obsidian Desktop must be running (the CLI communicates with the app
+via IPC).
 
 **CLI version note:** This reference was built against Obsidian v1.12.4. If commands behave
-unexpectedly, run `obsidian version` and `obsidian help <command>` to check for changes.
+unexpectedly, run `/usr/local/bin/obsidian version` to check for changes.
 
 ## Conventions
 
 - `file=<name>` resolves by name (like wikilinks). `path=<path>` is exact (folder/note.md).
 - Most commands default to the active file when file/path is omitted.
 - Quote values with spaces: `name="My Note"`. Use `\n` for newline, `\t` for tab.
-- Target a specific vault: `obsidian vault=<name> <command>`.
+- Target a specific vault: `/usr/local/bin/obsidian vault=<name> <command>`.
 - Output formats: many commands accept `format=json|tsv|csv` (default varies).
 - Use `total` flag on list commands to get counts instead of full output.
 
@@ -44,18 +30,18 @@ unexpectedly, run `obsidian version` and `obsidian help <command>` to check for 
 
 | Need           | Command        | Example                                                    |
 | -------------- | -------------- | ---------------------------------------------------------- |
-| Read a note    | `read`         | `obsidian read file="My Note"`                             |
-| Create a note  | `create`       | `obsidian create name="New Note" content="# Hello"`        |
-| Append to note | `append`       | `obsidian append file="Log" content="Entry"`               |
-| Search vault   | `search`       | `obsidian search query="meeting agenda"`                   |
-| Daily note     | `daily`        | `obsidian daily`                                           |
-| List files     | `files`        | `obsidian files folder="Projects"`                         |
-| Get properties | `properties`   | `obsidian properties file="Note"`                          |
-| Set property   | `property:set` | `obsidian property:set name=status value=done file="Task"` |
-| List tags      | `tags`         | `obsidian tags counts sort=count`                          |
-| Find backlinks | `backlinks`    | `obsidian backlinks file="Topic"`                          |
-| Run command    | `command`      | `obsidian command id=editor:toggle-bold`                   |
-| List vaults    | `vaults`       | `obsidian vaults verbose`                                  |
+| Read a note    | `read`         | `/usr/local/bin/obsidian read file="My Note"`                             |
+| Create a note  | `create`       | `/usr/local/bin/obsidian create name="New Note" content="# Hello"`        |
+| Append to note | `append`       | `/usr/local/bin/obsidian append file="Log" content="Entry"`               |
+| Search vault   | `search`       | `/usr/local/bin/obsidian search query="meeting agenda"`                   |
+| Daily note     | `daily`        | `/usr/local/bin/obsidian daily`                                           |
+| List files     | `files`        | `/usr/local/bin/obsidian files folder="Projects"`                         |
+| Get properties | `properties`   | `/usr/local/bin/obsidian properties file="Note"`                          |
+| Set property   | `property:set` | `/usr/local/bin/obsidian property:set name=status value=done file="Task"` |
+| List tags      | `tags`         | `/usr/local/bin/obsidian tags counts sort=count`                          |
+| Find backlinks | `backlinks`    | `/usr/local/bin/obsidian backlinks file="Topic"`                          |
+| Run command    | `command`      | `/usr/local/bin/obsidian command id=editor:toggle-bold`                   |
+| List vaults    | `vaults`       | `/usr/local/bin/obsidian vaults verbose`                                  |
 
 ## Command Domains
 
@@ -101,14 +87,14 @@ JavaScript eval, DOM inspection, CSS debugging, CDP protocol, console capture, s
 Obsidian tracks checkbox items (`- [ ]`) across notes:
 
 ```
-obsidian tasks                          # list all tasks
-obsidian tasks todo                     # incomplete only
-obsidian tasks done                     # completed only
-obsidian tasks file="Project"           # tasks in specific file
-obsidian tasks daily                    # tasks from daily note
-obsidian task file="Todo" line=5 toggle # toggle a task
-obsidian task file="Todo" line=5 done   # mark done
-obsidian task file="Todo" line=5 status="/" # custom status char
+/usr/local/bin/obsidian tasks                          # list all tasks
+/usr/local/bin/obsidian tasks todo                     # incomplete only
+/usr/local/bin/obsidian tasks done                     # completed only
+/usr/local/bin/obsidian tasks file="Project"           # tasks in specific file
+/usr/local/bin/obsidian tasks daily                    # tasks from daily note
+/usr/local/bin/obsidian task file="Todo" line=5 toggle # toggle a task
+/usr/local/bin/obsidian task file="Todo" line=5 done   # mark done
+/usr/local/bin/obsidian task file="Todo" line=5 status="/" # custom status char
 ```
 
 ## Parsing Output
@@ -124,31 +110,31 @@ command -v gawk # field/column processing
 **JSON output** (`format=json`): use `jq` if available.
 
 ```bash
-obsidian files format=json | jq '.[].path'
-obsidian properties file="Note" format=json | jq '.tags[]'
-obsidian search query="meeting" format=json | jq '.[] | {file, line}'
+/usr/local/bin/obsidian files format=json | jq '.[].path'
+/usr/local/bin/obsidian properties file="Note" format=json | jq '.tags[]'
+/usr/local/bin/obsidian search query="meeting" format=json | jq '.[] | {file, line}'
 ```
 
 **YAML/JSON** (`format=json` or properties): use `yq` if available, falls back to `jq`.
 
 ```bash
-obsidian properties file="Note" format=json | yq '.status'
+/usr/local/bin/obsidian properties file="Note" format=json | yq '.status'
 ```
 
 **TSV/CSV output**: use `awk`, `cut`, or `column` - no external deps needed.
 
 ```bash
-obsidian files format=tsv | awk -F'\t' '{print $1}'
-obsidian tags format=tsv | column -t -s $'\t'
+/usr/local/bin/obsidian files format=tsv | awk -F'\t' '{print $1}'
+/usr/local/bin/obsidian tags format=tsv | column -t -s $'\t'
 ```
 
 Only fall back to Python when the above tools are not available or the transformation is too complex for them.
 
 ## Tips
 
-- Pipe JSON output to jq for filtering: `obsidian files format=json | jq '.[]'`
+- Pipe JSON output to jq for filtering: `/usr/local/bin/obsidian files format=json | jq '.[]'`
 - Chain operations: read a template, create from it, set properties
 - Use `search:context` instead of `search` when you need matching line context
-- `obsidian commands filter=editor` to discover commands by prefix
-- `obsidian hotkeys all` shows every command including those without keybindings
+- `/usr/local/bin/obsidian commands filter=editor` to discover commands by prefix
+- `/usr/local/bin/obsidian hotkeys all` shows every command including those without keybindings
 - Run `obsidian` with no arguments for full help

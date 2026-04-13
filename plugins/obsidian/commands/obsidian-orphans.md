@@ -13,7 +13,7 @@ Process orphaned notes and connect them to the knowledge graph.
 ## Prerequisites
 
 - Obsidian Desktop must be running (CLI communicates via Unix socket)
-- All `obsidian` commands require `dangerouslyDisableSandbox: true`
+- Always invoke the CLI via `/usr/local/bin/obsidian` (full path required for sandbox compatibility)
 
 ## Step 0: Check QMD Availability
 
@@ -30,14 +30,14 @@ If QMD is unavailable, tell the user once at the start:
 
 ## Step 1: Discover Orphans
 
-Run `obsidian orphans` to get the full list.
+Run `/usr/local/bin/obsidian orphans` to get the full list.
 
 **Filter the list** before selecting notes to process:
 - Skip non-markdown files (images, PDFs, audio, canvases, etc.)
 - Skip `Templates/` directory files
 - Skip `Attachments/` directory files
 - Skip special files: `CLAUDE.md`, `Start Here.md`, `Home.md`
-- Skip notes that already have an `orphan-reviewed` property (check with `obsidian property:read name="orphan-reviewed" file="<note>"` - if it returns a value, skip that note)
+- Skip notes that already have an `orphan-reviewed` property (check with `/usr/local/bin/obsidian property:read name="orphan-reviewed" file="<note>"` - if it returns a value, skip that note)
 
 Parse the count from `$ARGUMENTS` (default to 10 if empty or not a number). Select that many orphans from the filtered list, aiming for a diverse mix of topics/locations.
 
@@ -49,16 +49,16 @@ Process notes in batches of 3-5 to maximize parallelism. Within each batch:
 
 ### 2a. Read Notes (parallel)
 
-Read all notes in the batch with parallel `obsidian read` calls.
+Read all notes in the batch with parallel `/usr/local/bin/obsidian read` calls.
 
 ```
-obsidian read file="<note name>"
+/usr/local/bin/obsidian read file="<note name>"
 ```
 
-**Important:** `obsidian read` fails silently - if it returns empty output with no error, that means `file=` resolution failed. Immediately retry with `path=` using the full path from the orphans list:
+**Important:** `/usr/local/bin/obsidian read` fails silently - if it returns empty output with no error, that means `file=` resolution failed. Immediately retry with `path=` using the full path from the orphans list:
 
 ```
-obsidian read path="3. Resources/Work/Example/Note-name.md"
+/usr/local/bin/obsidian read path="3. Resources/Work/Example/Note-name.md"
 ```
 
 ### 2b. Search for Connections (parallel)
@@ -83,12 +83,12 @@ For the top candidates, use `mcp__qmd__get` to read enough of each to confirm th
 
 ### 2c. Obsidian Search (fallback or primary)
 
-Use `obsidian search query="<terms>"` when:
+Use `/usr/local/bin/obsidian search query="<terms>"` when:
 - **QMD is unavailable** (Step 0 determined no collection exists) - this becomes the primary search method
 - **QMD returned no useful results** (all scores below threshold, or results are clearly unrelated)
 - **Catching recent notes** that QMD may not have indexed yet
 
-When this is the primary search method, run multiple searches per orphan with different keyword angles to compensate for the lack of semantic matching. For example, for an aviation training note, try both `obsidian search query="aviation"` and `obsidian search query="pilot training"`.
+When this is the primary search method, run multiple searches per orphan with different keyword angles to compensate for the lack of semantic matching. For example, for an aviation training note, try both `/usr/local/bin/obsidian search query="aviation"` and `/usr/local/bin/obsidian search query="pilot training"`.
 
 ### 2d. Examine Vault Conventions
 
@@ -119,8 +119,8 @@ Parallelize frontmatter `property:set` calls across notes in the batch. Prioriti
 Add missing properties using the exact CLI syntax:
 
 ```
-obsidian property:set name="summary" value="Brief description of the note" file="Note Name"
-obsidian property:set name="vault" value="personal" file="Note Name"
+/usr/local/bin/obsidian property:set name="summary" value="Brief description of the note" file="Note Name"
+/usr/local/bin/obsidian property:set name="vault" value="personal" file="Note Name"
 ```
 
 - Match existing vault conventions for tag hierarchy and property values
@@ -130,7 +130,7 @@ obsidian property:set name="vault" value="personal" file="Note Name"
 **Wikilink connections (only when genuine):**
 - If search found genuinely related notes, add `[[wikilinks]]` where they make natural sense
 - Place links in a "Related" or "See also" section, or inline in context
-- Add a related notes section with: `obsidian append file="Note Name" content="\n\n## Related\n- [[Other Note]] - brief reason"`
+- Add a related notes section with: `/usr/local/bin/obsidian append file="Note Name" content="\n\n## Related\n- [[Other Note]] - brief reason"`
 - If a note already has a Related section with placeholder content, use the `Edit` tool (requires `Read` first) to replace the placeholder instead of appending a duplicate section
 - Only link to notes that actually exist in the vault
 - Use the note's **title** (not file path) for the wikilink text
@@ -146,17 +146,17 @@ obsidian property:set name="vault" value="personal" file="Note Name"
 After all enrichment for a note is complete (frontmatter, wikilinks, or just tags), mark it so it won't be reprocessed:
 
 ```
-obsidian property:set name="orphan-reviewed" value="YYYY-MM-DD" file="Note Name"
+/usr/local/bin/obsidian property:set name="orphan-reviewed" value="YYYY-MM-DD" file="Note Name"
 ```
 
 Use today's date. This goes on every processed note regardless of whether connections were found. Notes with this property are only skipped as orphan candidates - they can still be linked to by other orphans during processing.
 
 ## Step 3: Verify (batch)
 
-After processing **all** notes, run all `obsidian backlinks` checks in parallel:
+After processing **all** notes, run all `/usr/local/bin/obsidian backlinks` checks in parallel:
 
 ```
-obsidian backlinks file="<note>"
+/usr/local/bin/obsidian backlinks file="<note>"
 ```
 
 This confirms which notes now have incoming links. Do this as a single batch at the end, not after each individual note.

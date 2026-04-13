@@ -17,62 +17,62 @@ CLI v1.12.4.
 ### View Workspace
 
 ```
-obsidian workspace                      # show workspace tree
-obsidian workspace ids                  # include workspace item IDs
+/usr/local/bin/obsidian workspace                      # show workspace tree
+/usr/local/bin/obsidian workspace ids                  # include workspace item IDs
 ```
 
 ### Workspace Commands
 
 ```
-obsidian command id=workspace:new-tab               # new tab
-obsidian command id=workspace:new-window             # new window
-obsidian command id=workspace:close                  # close current tab
-obsidian command id=workspace:close-others           # close other tabs
-obsidian command id=workspace:close-others-tab-group # close others in group
-obsidian command id=workspace:close-tab-group        # close tab group
-obsidian command id=workspace:close-window           # close window
-obsidian command id=workspace:split-horizontal       # horizontal split
-obsidian command id=workspace:split-vertical         # vertical split
-obsidian command id=workspace:toggle-pin             # pin/unpin tab
-obsidian command id=workspace:toggle-stacked-tabs    # toggle stacked tabs
-obsidian command id=workspace:undo-close-pane        # reopen closed tab
-obsidian command id=workspace:move-to-new-window     # move to new window
-obsidian command id=workspace:open-in-new-window     # open in new window
+/usr/local/bin/obsidian command id=workspace:new-tab               # new tab
+/usr/local/bin/obsidian command id=workspace:new-window             # new window
+/usr/local/bin/obsidian command id=workspace:close                  # close current tab
+/usr/local/bin/obsidian command id=workspace:close-others           # close other tabs
+/usr/local/bin/obsidian command id=workspace:close-others-tab-group # close others in group
+/usr/local/bin/obsidian command id=workspace:close-tab-group        # close tab group
+/usr/local/bin/obsidian command id=workspace:close-window           # close window
+/usr/local/bin/obsidian command id=workspace:split-horizontal       # horizontal split
+/usr/local/bin/obsidian command id=workspace:split-vertical         # vertical split
+/usr/local/bin/obsidian command id=workspace:toggle-pin             # pin/unpin tab
+/usr/local/bin/obsidian command id=workspace:toggle-stacked-tabs    # toggle stacked tabs
+/usr/local/bin/obsidian command id=workspace:undo-close-pane        # reopen closed tab
+/usr/local/bin/obsidian command id=workspace:move-to-new-window     # move to new window
+/usr/local/bin/obsidian command id=workspace:open-in-new-window     # open in new window
 ```
 
 ### Navigate Tabs
 
 ```
-obsidian command id=workspace:next-tab              # next tab
-obsidian command id=workspace:previous-tab          # previous tab
-obsidian command id=workspace:goto-tab-1            # go to tab 1-8
-obsidian command id=workspace:goto-last-tab         # go to last tab
+/usr/local/bin/obsidian command id=workspace:next-tab              # next tab
+/usr/local/bin/obsidian command id=workspace:previous-tab          # previous tab
+/usr/local/bin/obsidian command id=workspace:goto-tab-1            # go to tab 1-8
+/usr/local/bin/obsidian command id=workspace:goto-last-tab         # go to last tab
 ```
 
 ### Copy Paths
 
 ```
-obsidian command id=workspace:copy-path             # copy relative path
-obsidian command id=workspace:copy-full-path        # copy full path
-obsidian command id=workspace:copy-url              # copy obsidian:// URL
+/usr/local/bin/obsidian command id=workspace:copy-path             # copy relative path
+/usr/local/bin/obsidian command id=workspace:copy-full-path        # copy full path
+/usr/local/bin/obsidian command id=workspace:copy-url              # copy obsidian:// URL
 ```
 
 ### Export
 
 ```
-obsidian command id=workspace:export-pdf            # export as PDF
+/usr/local/bin/obsidian command id=workspace:export-pdf            # export as PDF
 ```
 
 ## Tabs
 
 ```
-obsidian tabs                           # list open tabs
-obsidian tabs ids                       # include tab IDs
+/usr/local/bin/obsidian tabs                           # list open tabs
+/usr/local/bin/obsidian tabs ids                       # include tab IDs
 
-obsidian tab:open                       # open new tab
-obsidian tab:open file="Note.md"        # open file in tab
-obsidian tab:open group=<id>            # open in specific group
-obsidian tab:open view=<type>           # open specific view type
+/usr/local/bin/obsidian tab:open                       # open new tab
+/usr/local/bin/obsidian tab:open file="Note.md"        # open file in tab
+/usr/local/bin/obsidian tab:open group=<id>            # open in specific group
+/usr/local/bin/obsidian tab:open view=<type>           # open specific view type
 ```
 
 ## Commands
@@ -80,17 +80,17 @@ obsidian tab:open view=<type>           # open specific view type
 ### Execute a Command
 
 ```
-obsidian command id=editor:toggle-bold  # execute by command ID
+/usr/local/bin/obsidian command id=editor:toggle-bold  # execute by command ID
 ```
 
 ### Discover Commands
 
 ```
-obsidian commands                       # list all 210+ command IDs
-obsidian commands filter=editor         # filter by prefix
-obsidian commands filter=workspace      # workspace commands
-obsidian commands filter=app            # app commands
-obsidian commands filter=file-explorer  # file explorer commands
+/usr/local/bin/obsidian commands                       # list all 210+ command IDs
+/usr/local/bin/obsidian commands filter=editor         # filter by prefix
+/usr/local/bin/obsidian commands filter=workspace      # workspace commands
+/usr/local/bin/obsidian commands filter=app            # app commands
+/usr/local/bin/obsidian commands filter=file-explorer  # file explorer commands
 ```
 
 Common command prefixes: `app:`, `editor:`, `workspace:`, `file-explorer:`, `graph:`, `bookmarks:`,
@@ -99,14 +99,14 @@ Common command prefixes: `app:`, `editor:`, `workspace:`, `file-explorer:`, `gra
 ## Hotkeys
 
 ```
-obsidian hotkeys                        # list bound hotkeys
-obsidian hotkeys all                    # include commands without hotkeys
-obsidian hotkeys total                  # hotkey count
-obsidian hotkeys verbose                # show if custom or default
-obsidian hotkeys format=json            # JSON output
+/usr/local/bin/obsidian hotkeys                        # list bound hotkeys
+/usr/local/bin/obsidian hotkeys all                    # include commands without hotkeys
+/usr/local/bin/obsidian hotkeys total                  # hotkey count
+/usr/local/bin/obsidian hotkeys verbose                # show if custom or default
+/usr/local/bin/obsidian hotkeys format=json            # JSON output
 
-obsidian hotkey id=editor:toggle-bold   # hotkey for specific command
-obsidian hotkey id=editor:toggle-bold verbose  # show custom vs default
+/usr/local/bin/obsidian hotkey id=editor:toggle-bold   # hotkey for specific command
+/usr/local/bin/obsidian hotkey id=editor:toggle-bold verbose  # show custom vs default
 ```
 
 ### Default Hotkeys (macOS)
@@ -128,31 +128,31 @@ obsidian hotkey id=editor:toggle-bold verbose  # show custom vs default
 ## Window and Navigation
 
 ```
-obsidian command id=app:go-back                 # navigate back
-obsidian command id=app:go-forward              # navigate forward
-obsidian command id=app:toggle-left-sidebar     # toggle left sidebar
-obsidian command id=app:toggle-right-sidebar    # toggle right sidebar
-obsidian command id=app:toggle-ribbon           # toggle ribbon
-obsidian command id=window:zoom-in              # zoom in
-obsidian command id=window:zoom-out             # zoom out
-obsidian command id=window:reset-zoom           # reset zoom
-obsidian command id=window:toggle-always-on-top # always on top
+/usr/local/bin/obsidian command id=app:go-back                 # navigate back
+/usr/local/bin/obsidian command id=app:go-forward              # navigate forward
+/usr/local/bin/obsidian command id=app:toggle-left-sidebar     # toggle left sidebar
+/usr/local/bin/obsidian command id=app:toggle-right-sidebar    # toggle right sidebar
+/usr/local/bin/obsidian command id=app:toggle-ribbon           # toggle ribbon
+/usr/local/bin/obsidian command id=window:zoom-in              # zoom in
+/usr/local/bin/obsidian command id=window:zoom-out             # zoom out
+/usr/local/bin/obsidian command id=window:reset-zoom           # reset zoom
+/usr/local/bin/obsidian command id=window:toggle-always-on-top # always on top
 ```
 
 ### Open Views
 
 ```
-obsidian command id=file-explorer:open          # file explorer
-obsidian command id=global-search:open          # search
-obsidian command id=graph:open                  # graph view
-obsidian command id=graph:open-local            # local graph
-obsidian command id=outline:open                # outline
-obsidian command id=tag-pane:open               # tag pane
-obsidian command id=backlink:open               # backlinks
-obsidian command id=outgoing-links:open         # outgoing links
-obsidian command id=properties:open             # global properties
-obsidian command id=properties:open-local       # local properties
-obsidian command id=bookmarks:open              # bookmarks
+/usr/local/bin/obsidian command id=file-explorer:open          # file explorer
+/usr/local/bin/obsidian command id=global-search:open          # search
+/usr/local/bin/obsidian command id=graph:open                  # graph view
+/usr/local/bin/obsidian command id=graph:open-local            # local graph
+/usr/local/bin/obsidian command id=outline:open                # outline
+/usr/local/bin/obsidian command id=tag-pane:open               # tag pane
+/usr/local/bin/obsidian command id=backlink:open               # backlinks
+/usr/local/bin/obsidian command id=outgoing-links:open         # outgoing links
+/usr/local/bin/obsidian command id=properties:open             # global properties
+/usr/local/bin/obsidian command id=properties:open-local       # local properties
+/usr/local/bin/obsidian command id=bookmarks:open              # bookmarks
 ```
 
 ## Editor Commands
@@ -160,75 +160,75 @@ obsidian command id=bookmarks:open              # bookmarks
 Formatting and editing via command IDs:
 
 ```
-obsidian command id=editor:toggle-bold
-obsidian command id=editor:toggle-italics
-obsidian command id=editor:toggle-strikethrough
-obsidian command id=editor:toggle-highlight
-obsidian command id=editor:toggle-code
-obsidian command id=editor:toggle-inline-math
-obsidian command id=editor:toggle-blockquote
-obsidian command id=editor:toggle-bullet-list
-obsidian command id=editor:toggle-numbered-list
-obsidian command id=editor:toggle-checklist-status
-obsidian command id=editor:cycle-list-checklist
-obsidian command id=editor:insert-callout
-obsidian command id=editor:insert-codeblock
-obsidian command id=editor:insert-table
-obsidian command id=editor:insert-link
-obsidian command id=editor:insert-wikilink
-obsidian command id=editor:insert-embed
-obsidian command id=editor:insert-tag
-obsidian command id=editor:insert-footnote
-obsidian command id=editor:insert-horizontal-rule
-obsidian command id=editor:insert-mathblock
-obsidian command id=editor:set-heading-1        # through heading-6
-obsidian command id=editor:set-heading-0        # remove heading
-obsidian command id=editor:clear-formatting
-obsidian command id=editor:toggle-source        # toggle source mode
-obsidian command id=editor:toggle-fold-properties
-obsidian command id=editor:toggle-spellcheck
-obsidian command id=editor:toggle-readable-line-length
-obsidian command id=editor:toggle-line-numbers
+/usr/local/bin/obsidian command id=editor:toggle-bold
+/usr/local/bin/obsidian command id=editor:toggle-italics
+/usr/local/bin/obsidian command id=editor:toggle-strikethrough
+/usr/local/bin/obsidian command id=editor:toggle-highlight
+/usr/local/bin/obsidian command id=editor:toggle-code
+/usr/local/bin/obsidian command id=editor:toggle-inline-math
+/usr/local/bin/obsidian command id=editor:toggle-blockquote
+/usr/local/bin/obsidian command id=editor:toggle-bullet-list
+/usr/local/bin/obsidian command id=editor:toggle-numbered-list
+/usr/local/bin/obsidian command id=editor:toggle-checklist-status
+/usr/local/bin/obsidian command id=editor:cycle-list-checklist
+/usr/local/bin/obsidian command id=editor:insert-callout
+/usr/local/bin/obsidian command id=editor:insert-codeblock
+/usr/local/bin/obsidian command id=editor:insert-table
+/usr/local/bin/obsidian command id=editor:insert-link
+/usr/local/bin/obsidian command id=editor:insert-wikilink
+/usr/local/bin/obsidian command id=editor:insert-embed
+/usr/local/bin/obsidian command id=editor:insert-tag
+/usr/local/bin/obsidian command id=editor:insert-footnote
+/usr/local/bin/obsidian command id=editor:insert-horizontal-rule
+/usr/local/bin/obsidian command id=editor:insert-mathblock
+/usr/local/bin/obsidian command id=editor:set-heading-1        # through heading-6
+/usr/local/bin/obsidian command id=editor:set-heading-0        # remove heading
+/usr/local/bin/obsidian command id=editor:clear-formatting
+/usr/local/bin/obsidian command id=editor:toggle-source        # toggle source mode
+/usr/local/bin/obsidian command id=editor:toggle-fold-properties
+/usr/local/bin/obsidian command id=editor:toggle-spellcheck
+/usr/local/bin/obsidian command id=editor:toggle-readable-line-length
+/usr/local/bin/obsidian command id=editor:toggle-line-numbers
 ```
 
 ### Table Editing
 
 ```
-obsidian command id=editor:table-row-before
-obsidian command id=editor:table-row-after
-obsidian command id=editor:table-row-up
-obsidian command id=editor:table-row-down
-obsidian command id=editor:table-row-copy
-obsidian command id=editor:table-row-delete
-obsidian command id=editor:table-col-before
-obsidian command id=editor:table-col-after
-obsidian command id=editor:table-col-left
-obsidian command id=editor:table-col-right
-obsidian command id=editor:table-col-copy
-obsidian command id=editor:table-col-delete
-obsidian command id=editor:table-col-align-left
-obsidian command id=editor:table-col-align-center
-obsidian command id=editor:table-col-align-right
+/usr/local/bin/obsidian command id=editor:table-row-before
+/usr/local/bin/obsidian command id=editor:table-row-after
+/usr/local/bin/obsidian command id=editor:table-row-up
+/usr/local/bin/obsidian command id=editor:table-row-down
+/usr/local/bin/obsidian command id=editor:table-row-copy
+/usr/local/bin/obsidian command id=editor:table-row-delete
+/usr/local/bin/obsidian command id=editor:table-col-before
+/usr/local/bin/obsidian command id=editor:table-col-after
+/usr/local/bin/obsidian command id=editor:table-col-left
+/usr/local/bin/obsidian command id=editor:table-col-right
+/usr/local/bin/obsidian command id=editor:table-col-copy
+/usr/local/bin/obsidian command id=editor:table-col-delete
+/usr/local/bin/obsidian command id=editor:table-col-align-left
+/usr/local/bin/obsidian command id=editor:table-col-align-center
+/usr/local/bin/obsidian command id=editor:table-col-align-right
 ```
 
 ### Multi-Cursor and Navigation
 
 ```
-obsidian command id=editor:add-cursor-above
-obsidian command id=editor:add-cursor-below
-obsidian command id=editor:swap-line-up
-obsidian command id=editor:swap-line-down
-obsidian command id=editor:delete-paragraph
-obsidian command id=editor:indent-list
-obsidian command id=editor:unindent-list
-obsidian command id=editor:fold-all
-obsidian command id=editor:unfold-all
-obsidian command id=editor:fold-more
-obsidian command id=editor:fold-less
-obsidian command id=editor:toggle-fold
-obsidian command id=editor:focus
-obsidian command id=editor:focus-top
-obsidian command id=editor:focus-bottom
-obsidian command id=editor:focus-left
-obsidian command id=editor:focus-right
+/usr/local/bin/obsidian command id=editor:add-cursor-above
+/usr/local/bin/obsidian command id=editor:add-cursor-below
+/usr/local/bin/obsidian command id=editor:swap-line-up
+/usr/local/bin/obsidian command id=editor:swap-line-down
+/usr/local/bin/obsidian command id=editor:delete-paragraph
+/usr/local/bin/obsidian command id=editor:indent-list
+/usr/local/bin/obsidian command id=editor:unindent-list
+/usr/local/bin/obsidian command id=editor:fold-all
+/usr/local/bin/obsidian command id=editor:unfold-all
+/usr/local/bin/obsidian command id=editor:fold-more
+/usr/local/bin/obsidian command id=editor:fold-less
+/usr/local/bin/obsidian command id=editor:toggle-fold
+/usr/local/bin/obsidian command id=editor:focus
+/usr/local/bin/obsidian command id=editor:focus-top
+/usr/local/bin/obsidian command id=editor:focus-bottom
+/usr/local/bin/obsidian command id=editor:focus-left
+/usr/local/bin/obsidian command id=editor:focus-right
 ```
