@@ -1,10 +1,14 @@
 {
   "name": "obsidian",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Obsidian vault management via CLI - notes, properties, search, plugins, sync, and developer tools",
   "author": {
     "name": "Adam Wallis"
   },
   "repository": "https://github.com/adawalli/claude-plugins.git",
-  "keywords": ["obsidian", "notes", "knowledge-base", "vault", "markdown", "cli"]
+  "keywords": ["obsidian", "notes", "knowledge-base", "vault", "markdown", "cli"],
+  "skills": [
+    "./skills/action-items",
+    "./skills/obsidian-cli"
+  ]
 }

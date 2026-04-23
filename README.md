@@ -91,6 +91,36 @@ uv tool install "yt-dlp[default]"
 
 Expands your query into 3 search variations, fetches up to 25 candidates per variation via yt-dlp, filters out irrelevant results, deduplicates, and ranks by a composite score based on views (30%), engagement (25%), recency (25%), and channel authority (20%). Returns a markdown table of the top N results (default 10).
 
+## Use These Skills From Other Agents (Codex, OpenCode, Cursor, etc.)
+
+This repo doubles as a [Vercel `skills`](https://github.com/vercel-labs/skills) source. Non-Claude
+agents can install the portable skills via `npx skills`, which reads this repo's `marketplace.json`
+directly - no separate publish step.
+
+```bash
+# List portable skills
+npx skills add adawalli/claude-plugins --list
+
+# Install one skill globally for Codex
+npx skills add adawalli/claude-plugins --skill problem-solving -g -a codex -y
+
+# Install all portable skills to every detected agent, globally
+npx skills add adawalli/claude-plugins --all -g
+
+# Update later
+npx skills update
+```
+
+What's portable and what isn't:
+
+- **Portable skills** (work across 45+ agents): `problem-solving`, `receiving-code-review`,
+  `cassette-flows`, `action-items`, `obsidian-cli`, `youtube-top-videos`
+- **Claude-Code-only** (intentionally hidden from `skills --list`): `code-review` uses the Agent tool
+  to orchestrate subagents - set `INSTALL_INTERNAL_SKILLS=1` if you want it visible anyway
+- **Not distributed via skills CLI**: subagents in `plugins/core/agents/`, hooks in
+  `opus-gatekeeper/`, slash commands (`git-commit`, `obsidian-orphans`, `ralph-orchestrate`) - these
+  remain Claude-Code-only
+
 ## Managing Plugins
 
 ### Enable/Disable
