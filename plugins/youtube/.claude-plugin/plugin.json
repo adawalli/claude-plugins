@@ -1,10 +1,13 @@
 {
   "name": "youtube",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "YouTube video discovery and ranking - find top videos by composite score using yt-dlp",
   "author": {
     "name": "Adam Wallis"
   },
   "repository": "https://github.com/adawalli/claude-plugins.git",
-  "keywords": ["youtube", "yt-dlp", "video", "search", "ranking"]
+  "keywords": ["youtube", "yt-dlp", "video", "search", "ranking"],
+  "skills": [
+    "./skills/youtube-top-videos"
+  ]
 }

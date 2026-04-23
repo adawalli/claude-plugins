@@ -6,5 +6,9 @@
     "name": "Adam Wallis"
   },
   "repository": "https://github.com/adawalli/claude-plugins.git",
-  "keywords": ["obsidian", "notes", "knowledge-base", "vault", "markdown", "cli"]
+  "keywords": ["obsidian", "notes", "knowledge-base", "vault", "markdown", "cli"],
+  "skills": [
+    "./skills/action-items",
+    "./skills/obsidian-cli"
+  ]
 }
