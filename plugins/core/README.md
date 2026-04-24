@@ -24,40 +24,6 @@ cd ~/dev/claude/claude-plugins
 git clone https://github.com/adawalli/claude-core.git
 ```
 
-## Available Commands
-
-### `/git-commit`
-
-Smart git commit command with conventional commit format and emoji support.
-
-**Features:**
-
-- Automatically runs pre-commit checks (lint, format) unless `--no-verify` is specified
-- Analyzes staged changes to suggest atomic commits
-- Creates well-formatted commit messages using emoji conventional commit format
-- Stages all modified files if nothing is staged
-- Follows best practices for commit hygiene
-
-**Usage:**
-
-```bash
-/git-commit                    # Interactive commit with analysis
-/git-commit "Custom message"   # Commit with custom message
-/git-commit --no-verify        # Skip pre-commit checks
-/git-commit --amend           # Amend previous commit
-```
-
-**Commit Types:**
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting)
-- `refactor`: Code refactoring
-- `perf`: Performance improvements
-- `test`: Adding or fixing tests
-- `chore`: Build process, tools, etc.
-
 ## Available Agents
 
 The plugin includes five specialized agents for code quality, testing, and documentation:
@@ -151,13 +117,17 @@ Specializes in Test-Driven Development (TDD) methodology and high-quality unit t
 
 ## Skills
 
-Skills are planned for future releases and will include:
+Auto-triggered based on the user's intent. Installable cross-agent via the Vercel skills CLI:
 
-- TDD workflows
-- Debugging techniques
-- Code review patterns
-- Collaboration best practices
-- Architecture decision patterns
+```bash
+npx skills@latest add adawalli/claude-plugins -s <skill-name> -g
+```
+
+- **`git-commit`** — Create well-formatted commits in conventional commit style. Triggers on "commit", "commit changes", "make a commit", etc. Handles staging, pre-commit checks, multi-commit splitting, and message drafting.
+- **`code-review`** — Orchestrated code review across multiple review perspectives.
+- **`pr-review`** — Autonomous PR feedback loop: monitor reviews, triage, fix, respond, push, repeat until approval.
+- **`problem-solving`** — Structured debugging and investigation workflow.
+- **`receiving-code-review`** — Technical rigor when processing review feedback (verify before implementing).
 
 ## Development
 
@@ -173,9 +143,12 @@ claude-core/
 │   ├── doc-quality-reviewer.md
 │   ├── docs-fetcher.md
 │   └── unit-test-expert.md
-├── commands/
-│   └── git-commit.md        # Git commit command
-├── skills/                  # Future skills
+├── skills/
+│   ├── code-review/
+│   ├── git-commit/
+│   ├── pr-review/
+│   ├── problem-solving/
+│   └── receiving-code-review/
 └── README.md               # This file
 ```
 

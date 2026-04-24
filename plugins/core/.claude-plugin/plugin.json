@@ -1,6 +1,6 @@
 {
   "name": "core",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
   "author": {
     "name": "Adam Wallis"
@@ -9,6 +9,7 @@
   "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows"],
   "skills": [
     "./skills/code-review",
+    "./skills/git-commit",
     "./skills/pr-review",
     "./skills/problem-solving",
     "./skills/receiving-code-review"
