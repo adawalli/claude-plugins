@@ -1,8 +1,6 @@
 ---
 name: code-review
 description: "Run a local multi-agent code review before pushing or creating a PR. Use this skill whenever the user says 'code-review', 'pre-review', 'review my changes', 'review before push', 'check my branch', 'local review', 'pre-PR review', or wants feedback on their current branch changes before submitting a pull request. Also use when the user asks to 'review the diff', 'check for issues before PR', or mentions wanting to catch review feedback early. This skill spawns multiple specialized review agents in parallel to give comprehensive feedback fast."
-metadata:
-  internal: true
 ---
 
 # Code Review: Local Multi-Agent Code Review
