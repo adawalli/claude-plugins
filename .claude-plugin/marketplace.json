@@ -73,6 +73,17 @@
         "./skills/cassette-flows"
       ],
       "strict": true
+    },
+    {
+      "name": "nano-banana",
+      "source": "./plugins/nano-banana",
+      "description": "Image generation and editing using Google Gemini's Nano Banana Pro model",
+      "version": "1.0.0",
+      "keywords": ["image", "generation", "gemini", "nano-banana", "editing", "visual"],
+      "skills": [
+        "./skills/nano-banana"
+      ],
+      "strict": true
     }
   ]
 }

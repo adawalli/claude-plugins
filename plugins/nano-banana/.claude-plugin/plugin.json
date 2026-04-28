@@ -1,0 +1,12 @@
+{
+  "name": "nano-banana",
+  "version": "1.0.0",
+  "description": "Image generation and editing using Google Gemini's Nano Banana Pro model",
+  "author": {
+    "name": "Adam Wallis"
+  },
+  "keywords": ["image", "generation", "gemini", "nano-banana", "editing", "visual"],
+  "skills": [
+    "./skills/nano-banana"
+  ]
+}
