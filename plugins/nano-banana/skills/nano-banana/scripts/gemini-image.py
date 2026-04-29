@@ -94,7 +94,7 @@ def main():
     parser.add_argument("--input", help="Source image path (for editing)")
     parser.add_argument("--aspect", default="1:1", help="Aspect ratio: 1:1, 16:9, 9:16, 4:3, 3:4, 21:9")
     parser.add_argument("--size", default="2K", help="Image size: 512, 1K, 2K, 4K")
-    parser.add_argument("--model", default="gemini-3-pro-image-preview")
+    parser.add_argument("--model", default="gemini-3-lite-image-preview")
     args = parser.parse_args()
 
     api_key = os.environ.get("NANO_BANANA_API_KEY")

@@ -77,8 +77,8 @@
     {
       "name": "nano-banana",
       "source": "./plugins/nano-banana",
-      "description": "Image generation and editing using Google Gemini's Nano Banana Pro model",
-      "version": "1.0.0",
+      "description": "Image generation and editing using Google Gemini's Nano Banana Lite model",
+      "version": "1.0.1",
       "keywords": ["image", "generation", "gemini", "nano-banana", "editing", "visual"],
       "skills": [
         "./skills/nano-banana"

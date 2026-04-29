@@ -23,7 +23,7 @@ Before generating, confirm their preferences. Present these options conversation
 |---------|---------|---------|
 | Aspect ratio | 1:1 (square), 16:9 (landscape), 9:16 (portrait), 4:3, 3:4, 21:9 (ultrawide) | 1:1 |
 | Image size | 512 (draft/fast), 1K (standard), 2K (high quality), 4K (maximum detail) | 2K |
-| Model | Pro (default, best quality) or Flash (faster, lighter) | Pro |
+| Model | Lite (default, great quality), Pro (maximum quality), or Flash (faster, lighter) | Lite |
 
 If the context makes the right choice obvious (e.g. a phone wallpaper is clearly 9:16), just confirm rather than asking. Skip the question entirely for quick/casual requests and use sensible defaults.
 
@@ -60,8 +60,9 @@ After the script runs, read the output image file and show it to the user. If th
 
 | Model | Flag | Best for |
 |-------|------|----------|
-| **Nano Banana Pro** | `--model gemini-3-pro-image-preview` (default) | Professional quality, complex scenes, text in images |
-| **Nano Banana 2** | `--model gemini-3.1-flash-image-preview` | Speed, high-volume, quick iterations |
+| **Nano Banana Lite** | `--model gemini-3-lite-image-preview` (default) | Great quality, balanced speed and detail |
+| **Nano Banana Pro** | `--model gemini-3-pro-image-preview` | Maximum quality, complex scenes, text in images |
+| **Nano Banana Flash** | `--model gemini-3.1-flash-image-preview` | Speed, high-volume, quick iterations |
 
 ## Prompt tips
 
