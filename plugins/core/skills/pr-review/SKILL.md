@@ -1,11 +1,13 @@
 ---
 name: pr-review
-description: "Address PR review feedback autonomously in a monitor-fix-push loop until automated reviewers approve or have no remaining blockers. Supports Claude reviews (`claude[bot]`) and Codex reviews (`chatgpt-codex-connector`, `chatgpt-codex-connector[bot]`), including Codex inline P1/P2/P3 comments. Default mode (`--non-interactive`) polls the PR for new reviewer feedback, triages feedback, fixes valid issues, replies to threads, commits, pushes, and loops. Pass `--interactive` for a human-confirmed single pass. Use whenever the user says 'pr-review', 'pr-feedback', 'address PR feedback', 'handle PR comments', 'fix PR review', 'respond to PR', 'address review comments', 'work the PR until reviewer approval', 'respond to Codex review', 'address Codex comments', 'handle Claude review', 'run the PR loop', or asks to check what reviewers said on a GitHub PR."
+description: "Address PR review feedback autonomously in a monitor-fix-push loop until automated reviewers approve or have no blockers. Supports Claude reviews (`claude[bot]`) and Codex reviews (`chatgpt-codex-connector`, `chatgpt-codex-connector[bot]`), including Codex inline P1/P2/P3 comments. Default mode (`--non-interactive`) polls or background-watches for new feedback, triages it, fixes valid issues, replies, commits, pushes, and loops. In Codex, use a cheap read-only background watcher agent when the user asks to wait, watch, loop, background, or wake them when feedback lands and no Monitor tool exists. Pass `--interactive` for a human-confirmed single pass. Use whenever the user says 'pr-review', 'pr-feedback', 'handle PR comments', 'fix PR review', 'respond to PR', 'address Codex comments', 'handle Claude review', 'run the PR loop', 'watch for PR feedback', 'background PR review', or asks to check reviewer feedback."
 ---
 
 # PR Feedback: Monitor, Triage, Fix, Respond
 
 Process review feedback on the current PR in a closed loop: wait for the next automated review, triage every actionable comment, implement valid fixes, push back on invalid suggestions, reply on-thread, commit, push, and go back to waiting. Default behavior is autonomous; pass `--interactive` to check in with the user at each triage.
+
+The monitoring mechanism is host-dependent. Claude Code may have a Monitor tool. Codex usually does not, so prefer a cheap read-only background watcher agent when the user wants the prompt to wake up after feedback lands.
 
 This skill supports both:
 
@@ -19,6 +21,8 @@ Parse the argument string for mode flags:
 - **`--non-interactive`** (default): run the monitor -> triage -> fix -> respond -> push -> monitor loop autonomously. Decide fix-vs-pushback using Step 3 and loop until the exit criteria in Step 7 are met.
 - **`--interactive`**: run one pass only. Present the triage table and wait for confirmation before making changes and before pushing.
 - **`--reviewer claude|codex|all`**: optionally scope the loop. If omitted, use `all` unless the user named one reviewer in the request.
+- **`--background-watch`**: use a read-only background watcher agent for wait-only monitor phases when the host supports background agents. Treat user phrases like "background this", "watch for feedback", "wake me when it lands", or "loop until review" as this mode.
+- **`--foreground-watch`**: keep polling in the current session when background agents are unavailable or the user wants all activity visible inline.
 
 If both interactive and non-interactive flags appear, prefer `--interactive`. If the user's message says "one pass", "just this round", or "let me review the triage", treat it as interactive.
 
@@ -30,20 +34,21 @@ Before doing anything else:
 
    ```bash
    gh pr view --json number,url,title,headRefName,state,isDraft
+   gh repo view --json owner,name --jq '{owner:.owner.login, repo:.name}'
    ```
 
    Record `{owner}`, `{repo}`, `{number}`, and the PR URL.
 
-2. Record baselines so new feedback can be detected after each push:
+2. Record baselines so new feedback can be detected after each push. Track both IDs and timestamps because some bots update an existing comment instead of creating a new one:
 
    ```bash
    git rev-parse HEAD
    gh api repos/{owner}/{repo}/issues/{number}/comments --paginate \
-     --jq '[.[] | select(.user.login == "claude[bot]")] | last | {id, updated_at}'
+     --jq '([.[] | select(.user.login == "claude[bot]")] | last // {}) | {id:(.id // 0), updated_at:(.updated_at // "")}'
    gh api repos/{owner}/{repo}/pulls/{number}/reviews --paginate \
-     --jq '[.[] | select(.user.login == "claude[bot]" or .user.login == "chatgpt-codex-connector")] | last | {id, user:.user.login, submitted_at, state}'
+     --jq '([.[] | select(.user.login == "claude[bot]" or .user.login == "chatgpt-codex-connector")] | last // {}) | {id:(.id // 0), user:.user.login, submitted_at:(.submitted_at // ""), state}'
    gh api repos/{owner}/{repo}/pulls/{number}/comments --paginate \
-     --jq '[.[] | select(.user.login == "chatgpt-codex-connector[bot]")] | last | {id, updated_at}'
+     --jq '([.[] | select(.user.login == "chatgpt-codex-connector[bot]")] | last // {}) | {id:(.id // 0), updated_at:(.updated_at // "")}'
    ```
 
 3. Create a short todo list for the cycle so progress is visible.
@@ -58,35 +63,90 @@ Each iteration is: **monitor -> fetch -> triage -> fix -> follow-up -> respond -
 
 Wait until selected reviewer feedback lands that is newer than the baseline. Track issue comments, formal review objects, and inline review comments separately because their IDs live in different namespaces.
 
-Use the Monitor tool when available. If it is unavailable, use a bounded shell poll and avoid burning time indefinitely.
+Choose the monitor backend in this order:
+
+1. **Feedback already exists**: if a fetch shows new actionable feedback newer than the baseline, skip waiting and continue to Step 2.
+2. **Claude Code Monitor tool**: use it when available.
+3. **Codex background watcher**: when background agents are available and the user asked to wait, watch, loop, background, or wake them, start a read-only watcher agent using the prompt below.
+4. **Foreground shell poll**: use the bounded shell poll below when no background mechanism is available.
+
+Do not let a watcher agent edit files, reply to GitHub, commit, push, or triage. Its only job is to cheaply poll and return a wake-up signal.
+
+#### Codex Background Watcher
+
+Start one lightweight background watcher for each wait-only monitor phase. Give it only the PR coordinates, reviewer scope, baselines, and timeout. The parent agent keeps ownership of triage, code changes, replies, commits, and pushes.
+
+Watcher prompt:
+
+```text
+You are a read-only PR review watcher.
+
+Repo: {owner}/{repo}
+PR: #{number}
+Reviewer scope: {claude|codex|all}
+Baselines:
+- HEAD: {head_sha}
+- Claude issue comment: id={id}, updated_at={updated_at}
+- Review object: id={id}, submitted_at={submitted_at}
+- Codex inline comment: id={id}, updated_at={updated_at}
+
+Poll GitHub every 60 seconds for up to 30 minutes. Detect only reviewer feedback newer than the baselines:
+- claude[bot] issue comments
+- claude[bot] or chatgpt-codex-connector formal PR reviews
+- chatgpt-codex-connector[bot] inline review comments
+
+Do not edit files, reply, commit, push, trigger reviews, or triage. When new feedback appears, stop immediately and return:
+NEW_FEEDBACK reviewer=<name> source=<issue_comment|review|inline_comment> id=<id> updated_at=<timestamp> url=<url if available>
+
+If no feedback appears before timeout, return:
+TIMEOUT waited_minutes=30
+```
+
+When the watcher completes with `NEW_FEEDBACK`, continue to Step 2 in the parent session. When it returns `TIMEOUT`, surface the timeout and ask whether to re-arm, trigger a reviewer, or stop.
+
+#### Foreground Shell Poll
 
 ```bash
 baseline_claude_issue_comment_id={LAST_SEEN_CLAUDE_ISSUE_COMMENT_ID_OR_0}
+baseline_claude_issue_comment_updated_at="{LAST_SEEN_CLAUDE_ISSUE_COMMENT_UPDATED_AT_OR_EMPTY}"
 baseline_review_id={LAST_SEEN_REVIEW_ID_OR_0}
+baseline_review_submitted_at="{LAST_SEEN_REVIEW_SUBMITTED_AT_OR_EMPTY}"
 baseline_codex_inline_comment_id={LAST_SEEN_CODEX_INLINE_COMMENT_ID_OR_0}
+baseline_codex_inline_comment_updated_at="{LAST_SEEN_CODEX_INLINE_COMMENT_UPDATED_AT_OR_EMPTY}"
+deadline=$((SECONDS + 1800))
 
-while true; do
+while [ "$SECONDS" -lt "$deadline" ]; do
   latest_claude_comment=$(gh api repos/{owner}/{repo}/issues/{number}/comments --paginate \
-    --jq '[.[] | select(.user.login == "claude[bot]")] | last | .id // 0' 2>/dev/null || echo 0)
+    --jq '([.[] | select(.user.login == "claude[bot]")] | last // {}) | {id:(.id // 0), updated_at:(.updated_at // "")}' 2>/dev/null || echo '{"id":0,"updated_at":""}')
   latest_review=$(gh api repos/{owner}/{repo}/pulls/{number}/reviews --paginate \
-    --jq '[.[] | select(.user.login == "claude[bot]" or .user.login == "chatgpt-codex-connector")] | last | .id // 0' 2>/dev/null || echo 0)
+    --jq '([.[] | select(.user.login == "claude[bot]" or .user.login == "chatgpt-codex-connector")] | last // {}) | {id:(.id // 0), submitted_at:(.submitted_at // "")}' 2>/dev/null || echo '{"id":0,"submitted_at":""}')
   latest_codex_inline=$(gh api repos/{owner}/{repo}/pulls/{number}/comments --paginate \
-    --jq '[.[] | select(.user.login == "chatgpt-codex-connector[bot]")] | last | .id // 0' 2>/dev/null || echo 0)
+    --jq '([.[] | select(.user.login == "chatgpt-codex-connector[bot]")] | last // {}) | {id:(.id // 0), updated_at:(.updated_at // "")}' 2>/dev/null || echo '{"id":0,"updated_at":""}')
 
-  if [ "$latest_claude_comment" -gt "$baseline_claude_issue_comment_id" ]; then
-    echo "NEW_CLAUDE_COMMENT id=$latest_claude_comment"
+  latest_claude_comment_id=$(printf '%s' "$latest_claude_comment" | jq -r '.id // 0')
+  latest_claude_comment_updated_at=$(printf '%s' "$latest_claude_comment" | jq -r '.updated_at // ""')
+  latest_review_id=$(printf '%s' "$latest_review" | jq -r '.id // 0')
+  latest_review_submitted_at=$(printf '%s' "$latest_review" | jq -r '.submitted_at // ""')
+  latest_codex_inline_id=$(printf '%s' "$latest_codex_inline" | jq -r '.id // 0')
+  latest_codex_inline_updated_at=$(printf '%s' "$latest_codex_inline" | jq -r '.updated_at // ""')
+
+  if [ "$latest_claude_comment_id" -gt "$baseline_claude_issue_comment_id" ] || [ "$latest_claude_comment_updated_at" \> "$baseline_claude_issue_comment_updated_at" ]; then
+    echo "NEW_CLAUDE_COMMENT id=$latest_claude_comment_id updated_at=$latest_claude_comment_updated_at"
     exit 0
   fi
-  if [ "$latest_review" -gt "$baseline_review_id" ]; then
-    echo "NEW_REVIEW id=$latest_review"
+  if [ "$latest_review_id" -gt "$baseline_review_id" ] || [ "$latest_review_submitted_at" \> "$baseline_review_submitted_at" ]; then
+    echo "NEW_REVIEW id=$latest_review_id submitted_at=$latest_review_submitted_at"
     exit 0
   fi
-  if [ "$latest_codex_inline" -gt "$baseline_codex_inline_comment_id" ]; then
-    echo "NEW_CODEX_INLINE id=$latest_codex_inline"
+  if [ "$latest_codex_inline_id" -gt "$baseline_codex_inline_comment_id" ] || [ "$latest_codex_inline_updated_at" \> "$baseline_codex_inline_comment_updated_at" ]; then
+    echo "NEW_CODEX_INLINE id=$latest_codex_inline_id updated_at=$latest_codex_inline_updated_at"
     exit 0
   fi
   sleep 30
 done
+
+echo "TIMEOUT waited_minutes=30"
+exit 2
 ```
 
 Use a 30 minute timeout per wait. If it times out, surface that to the user rather than silently re-arming.
@@ -203,7 +263,7 @@ fix: address PR #16 Codex review feedback
 
 Push in non-interactive mode without asking. Do not use `--no-verify`; if hooks fail, fix the root cause and re-commit.
 
-After pushing, update baselines: HEAD SHA, latest Claude issue comment ID, latest review object ID, and latest Codex inline comment ID. Then return to Step 1.
+After pushing, update baselines: HEAD SHA, latest Claude issue comment ID/timestamp, latest review object ID/timestamp, and latest Codex inline comment ID/timestamp. Then return to Step 1.
 
 ### Step 7 - Exit Criteria
 
