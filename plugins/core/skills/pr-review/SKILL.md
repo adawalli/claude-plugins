@@ -1,178 +1,182 @@
 ---
 name: pr-review
-description: "Address PR review feedback autonomously in a monitor-fix-push loop until the Claude reviewer approves. Default mode (`--non-interactive`) polls the PR for new Claude reviews, triages feedback on its own, runs `/simplify` or `/core:code-review` when warranted, responds to threads, commits, pushes, and loops until Claude approves. Pass `--interactive` to fall back to the older human-in-the-loop triage flow. Use this skill whenever the user says 'pr-review', 'pr-feedback', 'address PR feedback', 'handle PR comments', 'fix PR review', 'respond to PR', 'address review comments', 'work the PR until Claude approves', 'run the PR loop', or wants to process review feedback on a GitHub PR. Also trigger when the user says 'check what reviewers said', 'look at PR comments', or references review feedback they received."
+description: "Address PR review feedback autonomously in a monitor-fix-push loop until automated reviewers approve or have no remaining blockers. Supports Claude reviews (`claude[bot]`) and Codex reviews (`chatgpt-codex-connector`, `chatgpt-codex-connector[bot]`), including Codex inline P1/P2/P3 comments. Default mode (`--non-interactive`) polls the PR for new reviewer feedback, triages feedback, fixes valid issues, replies to threads, commits, pushes, and loops. Pass `--interactive` for a human-confirmed single pass. Use whenever the user says 'pr-review', 'pr-feedback', 'address PR feedback', 'handle PR comments', 'fix PR review', 'respond to PR', 'address review comments', 'work the PR until reviewer approval', 'respond to Codex review', 'address Codex comments', 'handle Claude review', 'run the PR loop', or asks to check what reviewers said on a GitHub PR."
 ---
 
-# PR Feedback: Monitor, Triage, Fix, Respond — On Loop
+# PR Feedback: Monitor, Triage, Fix, Respond
 
-Process review feedback on the current PR in a closed loop: wait for Claude's next review, triage every comment, implement the fixes that matter, push back on the ones that don't, reply on-thread, commit, push, and go back to waiting. Default behavior is fully autonomous; pass `--interactive` to check in with the user at each triage.
+Process review feedback on the current PR in a closed loop: wait for the next automated review, triage every actionable comment, implement valid fixes, push back on invalid suggestions, reply on-thread, commit, push, and go back to waiting. Default behavior is autonomous; pass `--interactive` to check in with the user at each triage.
 
-## Why this workflow matters
+This skill supports both:
 
-PR review cycles are slow when done by hand: read comments, context-switch into code, fix, push, wait, come back, reply to each thread, wait again. This skill collapses that into one continuous pass — the agent holds the loop, makes triage decisions, reasons through complexity-sensitive follow-ups (simplification, second-opinion review), and only exits once the Claude reviewer signs off. The human stays out of the tight loop but keeps steering power through pushback reasoning and optional interactive mode.
+- **Claude**: `claude[bot]` top-level issue comments with severity sections (`### Critical`, `### High`, etc.).
+- **Codex**: `chatgpt-codex-connector` formal review summaries plus actionable inline comments from `chatgpt-codex-connector[bot]`, usually with P1/P2/P3 badges.
 
 ## Modes
 
 Parse the argument string for mode flags:
 
-- **`--non-interactive`** (default, assumed if no flag is passed): run the full monitor → triage → fix → respond → push → monitor loop autonomously. The agent decides fix-vs-pushback on its own using the criteria in Step 3, and decides whether to invoke `/simplify` and/or `/core:code-review` using the heuristics in Step 4. Exit only when Claude's latest review is effectively approving (see Exit Criteria in Step 7).
-- **`--interactive`**: run a single pass of the flow (no monitor loop). Present the triage table to the user and wait for confirmation before making changes and before pushing. This is the old behavior, kept for when the user wants to steer each cycle by hand.
+- **`--non-interactive`** (default): run the monitor -> triage -> fix -> respond -> push -> monitor loop autonomously. Decide fix-vs-pushback using Step 3 and loop until the exit criteria in Step 7 are met.
+- **`--interactive`**: run one pass only. Present the triage table and wait for confirmation before making changes and before pushing.
+- **`--reviewer claude|codex|all`**: optionally scope the loop. If omitted, use `all` unless the user named one reviewer in the request.
 
-If both flags appear, prefer `--interactive`. If the user's message contains phrases like "one pass", "just this round", or "let me review the triage", treat it as `--interactive` even without the flag.
+If both interactive and non-interactive flags appear, prefer `--interactive`. If the user's message says "one pass", "just this round", or "let me review the triage", treat it as interactive.
 
-## Common setup (both modes)
+## Common Setup
 
 Before doing anything else:
 
 1. Identify the PR from the current branch:
+
    ```bash
    gh pr view --json number,url,title,headRefName,state,isDraft
    ```
-   Record `{owner}`, `{repo}`, `{number}`, and the PR URL — you'll reuse them throughout.
 
-2. Record a baseline so you can detect *new* Claude reviews later. Capture:
-   - Latest head SHA: `git rev-parse HEAD`
-   - The most recent `claude[bot]` comment ID and `updated_at`, if any:
-     ```bash
-     gh api repos/{owner}/{repo}/issues/{number}/comments --paginate \
-       --jq '[.[] | select(.user.login == "claude[bot]")] | last | {id, updated_at}'
-     ```
-     Also check review objects:
-     ```bash
-     gh api repos/{owner}/{repo}/pulls/{number}/reviews --paginate \
-       --jq '[.[] | select(.user.login == "claude[bot]")] | last | {id, submitted_at, state}'
-     ```
+   Record `{owner}`, `{repo}`, `{number}`, and the PR URL.
 
-Create a short todo list for the cycle you're about to run so progress is visible.
+2. Record baselines so new feedback can be detected after each push:
 
----
+   ```bash
+   git rev-parse HEAD
+   gh api repos/{owner}/{repo}/issues/{number}/comments --paginate \
+     --jq '[.[] | select(.user.login == "claude[bot]")] | last | {id, updated_at}'
+   gh api repos/{owner}/{repo}/pulls/{number}/reviews --paginate \
+     --jq '[.[] | select(.user.login == "claude[bot]" or .user.login == "chatgpt-codex-connector")] | last | {id, user:.user.login, submitted_at, state}'
+   gh api repos/{owner}/{repo}/pulls/{number}/comments --paginate \
+     --jq '[.[] | select(.user.login == "chatgpt-codex-connector[bot]")] | last | {id, updated_at}'
+   ```
 
-## Non-interactive loop (default)
+3. Create a short todo list for the cycle so progress is visible.
 
-Run the steps below as a loop. Each iteration is: **monitor → fetch → triage → fix → follow-up → respond → commit → push → back to monitor**. End when the Exit Criteria in Step 7 are satisfied, or after 8 iterations as a hard safety cap (if you hit the cap, stop and summarize — something is oscillating and the human should look).
+If `isDraft == true`, confirm with the user before looping. Automated reviews on drafts are often low-signal.
 
-### Step 1 — Monitor for a new Claude review
+## Non-Interactive Loop
 
-Wait until a Claude review lands that is *newer than the baseline* (higher ID than what you recorded on the last push, or — on the first iteration — any Claude review at all that was triggered by the current HEAD).
+Each iteration is: **monitor -> fetch -> triage -> fix -> follow-up -> respond -> commit -> push -> monitor**. Stop after 8 iterations as a safety cap.
 
-Use the **Monitor tool**, not a synchronous `for`/`sleep` loop. Monitor runs the poll script in the background and emits one notification the moment a new review appears, so the agent isn't blocked on `sleep` and cache warmth isn't burned on a spinning wait. Drive Monitor with a script like this:
+### Step 1 - Monitor for New Review Feedback
+
+Wait until selected reviewer feedback lands that is newer than the baseline. Track issue comments, formal review objects, and inline review comments separately because their IDs live in different namespaces.
+
+Use the Monitor tool when available. If it is unavailable, use a bounded shell poll and avoid burning time indefinitely.
 
 ```bash
-# Track two baselines separately — issue-comment IDs and review IDs live in
-# different numeric namespaces, so they can't be compared against each other.
-baseline_comment_id={LAST_SEEN_CLAUDE_ISSUE_COMMENT_ID_OR_0}
-baseline_review_id={LAST_SEEN_CLAUDE_REVIEW_ID_OR_0}
+baseline_claude_issue_comment_id={LAST_SEEN_CLAUDE_ISSUE_COMMENT_ID_OR_0}
+baseline_review_id={LAST_SEEN_REVIEW_ID_OR_0}
+baseline_codex_inline_comment_id={LAST_SEEN_CODEX_INLINE_COMMENT_ID_OR_0}
 
 while true; do
-  latest_comment=$(gh api repos/{owner}/{repo}/issues/{number}/comments --paginate \
+  latest_claude_comment=$(gh api repos/{owner}/{repo}/issues/{number}/comments --paginate \
     --jq '[.[] | select(.user.login == "claude[bot]")] | last | .id // 0' 2>/dev/null || echo 0)
   latest_review=$(gh api repos/{owner}/{repo}/pulls/{number}/reviews --paginate \
-    --jq '[.[] | select(.user.login == "claude[bot]")] | last | .id // 0' 2>/dev/null || echo 0)
-  if [ "$latest_comment" -gt "$baseline_comment_id" ]; then
-    echo "NEW_COMMENT id=$latest_comment"
+    --jq '[.[] | select(.user.login == "claude[bot]" or .user.login == "chatgpt-codex-connector")] | last | .id // 0' 2>/dev/null || echo 0)
+  latest_codex_inline=$(gh api repos/{owner}/{repo}/pulls/{number}/comments --paginate \
+    --jq '[.[] | select(.user.login == "chatgpt-codex-connector[bot]")] | last | .id // 0' 2>/dev/null || echo 0)
+
+  if [ "$latest_claude_comment" -gt "$baseline_claude_issue_comment_id" ]; then
+    echo "NEW_CLAUDE_COMMENT id=$latest_claude_comment"
     exit 0
   fi
   if [ "$latest_review" -gt "$baseline_review_id" ]; then
     echo "NEW_REVIEW id=$latest_review"
     exit 0
   fi
+  if [ "$latest_codex_inline" -gt "$baseline_codex_inline_comment_id" ]; then
+    echo "NEW_CODEX_INLINE id=$latest_codex_inline"
+    exit 0
+  fi
   sleep 30
 done
 ```
 
-Invoke via the Monitor tool with:
-- `description`: `"PR #{number}: awaiting new Claude review"` — appears in every notification, be specific.
-- `command`: the script above with the baseline IDs substituted.
-- `timeout_ms`: `1800000` (30 min) is a reasonable ceiling per wait. If the user wants to wait longer without babysitting, use `persistent: true` instead and cancel with TaskStop once you handle the event.
-- Handle `|| echo 0` on each `gh api` call so a transient 5xx doesn't kill the monitor — a single failed poll should not take the whole watch down.
+Use a 30 minute timeout per wait. If it times out, surface that to the user rather than silently re-arming.
 
-When Monitor emits the `NEW_COMMENT` / `NEW_REVIEW` line, proceed to Step 2. In practice on this user's workflow, Claude's reviews land as issue comments — the review-objects endpoint is usually empty. Track both anyway; it's cheap insurance against setup changes.
+If this is the first run and the selected reviewer has never reviewed the PR, ask before triggering a review. Common triggers are `@claude please review` for Claude and `@codex review` for Codex.
 
-If Monitor times out without emitting an event, surface that to the user: "No new Claude review in 30 min — still waiting, or should I stop?" Don't re-arm silently; the human should decide whether this run is stalled.
+### Step 2 - Fetch Review Feedback
 
-On the first iteration only: if the PR has never had a Claude review and there is no pending `@claude` trigger in the thread, there is nothing to react to. Ask the user whether to request a review (and how — typically by pushing, or by posting a top-level `@claude please review` comment) rather than arming Monitor against silence.
+Fetch all relevant feedback using filtered API calls. Raw API responses get large and can hide important comments behind truncation.
 
-### Step 2 — Fetch all review comments
+**Inline code comments**:
 
-When a new review lands, pull the full feedback set. Use `--jq` filters — raw API responses can be 30KB+ and get truncated, hiding real feedback behind bot noise.
-
-**Inline code comments** (comments on specific diff lines):
 ```bash
 gh api repos/{owner}/{repo}/pulls/{number}/comments --paginate \
-  --jq '.[] | {id, author: .user.login, path, line: .original_line, in_reply_to: .in_reply_to_id, body}'
+  --jq '.[] | {id, author: .user.login, path, line: .line, original_line: .original_line, in_reply_to: .in_reply_to_id, body}'
 ```
 
-**Review objects** (approval / changes-requested with optional body):
+**Review objects**:
+
 ```bash
 gh api repos/{owner}/{repo}/pulls/{number}/reviews --paginate \
-  --jq '.[] | {id, author: .user.login, state, body}'
+  --jq '.[] | {id, author: .user.login, state, body, submitted_at, commit_id}'
 ```
 
-**Issue comments** (top-level PR comments — where `claude[bot]` and `coderabbitai[bot]` post their reviews):
+**Top-level PR comments**:
+
 ```bash
 gh api repos/{owner}/{repo}/issues/{number}/comments --paginate \
-  --jq '.[] | {id, author: .user.login, body}'
+  --jq '.[] | {id, author: .user.login, body, created_at, updated_at}'
 ```
 
-The issue comments endpoint is the important one for Claude — Claude posts its reviews as issue comments, not as formal `pulls/reviews`. If a body gets truncated, fetch it directly:
+If a body is truncated, fetch it directly:
 
 ```bash
 gh api repos/{owner}/{repo}/issues/comments/{comment_id} --jq '.body'
+gh api repos/{owner}/{repo}/pulls/comments/{comment_id} --jq '.body'
 ```
 
-Parse each item out of Claude's review. Claude's GitHub reviews follow a predictable shape:
+Parse feedback by reviewer:
 
-- Header line: `**Claude finished reviewing PR #N**`
-- Severity-labeled sections: `### Critical`, `### High`, `### Medium`, `### Low`, and sometimes `### Nits` / `### Questions`
-- Each numbered item inside a section has a title, a paragraph of context, file/line references (`src/lib/services/po-service.ts:1037-1061`), and often a `[Fix this →]` deep link (ignore those — they're for humans on claude.ai)
+- **Claude issue comments**: treat each numbered item under `### Critical`, `### High`, `### Medium`, `### Low`, `### Minor`, `### Nits`, or `### Questions` as a triage row. Carry the severity label forward. Ignore Claude "encountered an error" comments unless the user asked to diagnose reviewer failures.
+- **Claude inline comments**: treat each top-level inline comment as one triage row.
+- **Codex inline comments**: treat each top-level inline comment from `chatgpt-codex-connector[bot]` as one triage row. Extract priority from badge text (`P1`, `P2`, `P3`) when present. Ignore the `Useful? React with...` footer.
+- **Codex review object**: use it as a review marker and commit marker. It may only contain the "Codex Review" header and reviewed commit, while actionable suggestions live in inline comments.
+- **Human comments**: include only if the user asked to address all reviewers. Otherwise call them out in the final summary.
 
-Treat every numbered item as its own triage row. Carry the severity label forward — it's what the exit criteria in Step 7 depend on.
+Skip replies (`in_reply_to != null`) during triage unless they contain a new unresolved request.
 
-### Step 3 — Read code and triage autonomously
+### Step 3 - Read Code and Triage
 
-For each comment, read enough surrounding source to judge it — not just the diff line. Check relevant specs in `specs/<NNN>-*/` or `docs/specs/`, related tests, and `CLAUDE.md` for conventions.
+For each triage row, read enough surrounding source to judge it. Check specs, tests, docs, and project instructions before deciding. Do not rely only on the diff line.
 
-Then, without asking the user, classify each item as one of:
+Classify each row as:
 
-- **Fix** — genuine bug, missed edge case, convention violation, missing test, real readability win. If the comment identifies an actual behavior problem or contradicts project conventions, it's a fix.
-- **Pushback** — the reviewer misread the code, the suggestion contradicts a spec or deliberate decision, it's over-engineering, or it's a style preference that isn't backed by project conventions. Pushback requires a concrete technical reason you can defend on-thread.
-- **Question** — the comment is ambiguous or needs context you don't have. Reply asking the specific clarifying question; don't force a fix or pushback.
-- **Acknowledge** — informational ("nice approach") or already addressed. Short reply.
+- **Fix** - genuine bug, missed edge case, convention violation, missing test, or real readability win.
+- **Pushback** - reviewer misread the code, suggestion contradicts a spec or deliberate design, or the change would add complexity without a concrete benefit.
+- **Question** - ambiguous feedback or missing context.
+- **Acknowledge** - informational, positive, duplicate, already addressed, or reviewer error noise.
 
-**Autonomy guardrail:** when a comment is close to the fix / pushback line, lean toward fix. The human's leverage in this workflow is reading the final diff and reply, not steering triage — so err on the side of making the change and explaining your reasoning in the commit message. Pushback should feel like an argument you'd defend to the reviewer's face, not a shortcut.
+Autonomy guardrail: when a comment is near the fix/pushback line, lean toward fixing. Pushback needs a concrete technical reason that can stand on its own in the PR thread.
 
-Build an internal triage table (you'll log it in the summary at the end). In non-interactive mode, **do not block on user confirmation** — proceed to Step 4.
+For Codex priorities, treat `P1` like Critical/High, `P2` like Medium/High depending on impact, and `P3` like Low/Minor. Do not blindly fix a Codex suggestion just because it is priority-labeled; still verify it against the code.
 
-### Step 4 — Implement fixes and decide on follow-ups
+### Step 4 - Implement Fixes and Follow-Ups
 
-Make all the code changes for items triaged as Fix. For each one: change the code, run the smallest relevant test that exercises it (`bun test <file>`), and move on.
+Make all code changes for rows triaged as Fix. For each cluster of related fixes:
 
-Then decide whether to invoke follow-up skills. Use your own judgment — these are heuristics, not rules:
+1. Edit the smallest coherent surface.
+2. Add or update focused tests when the feedback is behavioral.
+3. Run the smallest relevant test command.
 
-- **`/simplify`** — invoke when the fixes accumulated any of: duplicated logic across 2+ files you just touched, a function that grew past ~40 lines, nested conditionals you added to satisfy an edge case, or a new helper that feels one-off. Skip it for trivial one-liner fixes or purely mechanical renames.
-- **`/core:code-review`** — invoke when the fixes touched: auth, migrations, financial calculations, event emission, adapter boundaries (QBO, OneDrive, DocuSign), or anything in `src/lib/services/` with non-trivial branching. Skip it for comment/docstring fixes, test-only changes, or UI polish.
+Then decide whether to invoke follow-up skills:
 
-You can invoke both, either, or neither. If you run `/simplify` or `/core:code-review` and they produce fixes of their own, fold those into the same commit as the reviewer-driven fixes — don't fragment the PR.
+- Use `/simplify` when the fixes introduced duplication, long functions, nested branching, or one-off helpers.
+- Use `/core:code-review` when fixes touched auth, migrations, financial calculations, event emission, adapter boundaries, or non-trivial shared services.
 
-After all fixes and follow-ups are applied, run the full relevant test suite once to catch regressions:
+Run the full relevant test suite once before replying/pushing. Never push a known red commit.
 
-```bash
-bun test
-```
+### Step 5 - Reply to Review Threads
 
-If tests fail, fix them before moving on. Never push a red commit.
+Reply to every triaged actionable item before pushing, so replies land before the push triggers the next review pass.
 
-### Step 5 — Reply to threads (before pushing)
+Use direct, technical replies:
 
-Reply to every triaged thread *before* pushing, so replies land before the push triggers the next Claude review pass.
+- **Fix**: "Fixed - added a null guard before loading reconciliation state. Incoming commit."
+- **Pushback**: "Keeping this as-is. The server action already revalidates the route after mutation, and the stale state described here cannot persist past the next render."
+- **Question**: ask the specific clarifying question and state your current understanding.
+- **Acknowledge**: brief confirmation.
 
-For each item:
-- **Fix** — short, specific confirmation. "Fixed — added null guard on `groupId` before the query. Incoming commit."
-- **Pushback** — direct technical reasoning. Cite code, specs, or conventions. No hedging, no apologizing. "Keeping this as-is. The component renders once per page load (behind a layout boundary), so `useCallback` adds indirection without a perf benefit."
-- **Question** — ask the specific clarifying question; include your current understanding so the reviewer can correct it efficiently.
-- **Acknowledge** — brief thanks or a one-liner response.
-
-Post replies with `gh api`:
+Post replies with:
 
 ```bash
 # Reply to an inline review comment thread
@@ -185,103 +189,87 @@ gh api repos/{owner}/{repo}/issues/{number}/comments \
   -f body="Your reply here"
 ```
 
-**Do not tag `@claude` in replies.** The push in Step 6 triggers Claude to re-review automatically; tagging causes double reviews and muddies the loop's exit signal.
+For Codex inline comments, reply directly to the inline comment. Do not ask Codex to "address that feedback" unless the user explicitly wants Codex cloud to make the changes.
 
-### Step 6 — Commit and push
+Avoid tagging `@claude` or `@codex` in routine replies; pushing should trigger the next review in repos configured for automated review. Tag only when the repo requires manual triggering or the user asks.
 
-Invoke the `/commit` skill (core:git-commit) to create a well-formatted commit. Reference the PR and the review iteration in the message, e.g.:
+### Step 6 - Commit and Push
 
-```
-fix: address PR #12 review feedback (round 2)
-```
+Use the `git-commit` skill to create a conventional commit. Reference the PR and reviewer round, for example:
 
-Then push:
-
-```bash
-git push
+```text
+fix: address PR #16 Codex review feedback
 ```
 
-In non-interactive mode, push without asking — that's the whole point of the mode. Do **not** use `--no-verify`; if a pre-commit hook fails, fix the root cause and re-commit.
+Push in non-interactive mode without asking. Do not use `--no-verify`; if hooks fail, fix the root cause and re-commit.
 
-After the push, update the baseline (new HEAD SHA, record the Claude comment ID you just processed as the new low-water mark) and return to Step 1.
+After pushing, update baselines: HEAD SHA, latest Claude issue comment ID, latest review object ID, and latest Codex inline comment ID. Then return to Step 1.
 
-### Step 7 — Exit criteria
+### Step 7 - Exit Criteria
 
-Before looping, check whether you should stop instead:
+Stop when any of these are true:
 
-Claude on this workflow almost never posts a formal `APPROVED` review object — reviews arrive as issue-comment bodies. Base exit on the body, not the `state` field.
+- The selected reviewer has no new actionable Critical/High/P1/P2 items left to fix.
+- Claude's latest review body says "ready to merge", "no remaining blockers", "LGTM", or similar, and lists no new Critical/High items.
+- Codex has no top-level inline comments newer than the last processed commit, or the remaining Codex comments have already been fixed, pushed back with technical reasoning, or acknowledged as non-actionable.
+- A formal review object with `state == "APPROVED"` lands.
+- You hit 8 iterations.
+- Tests fail in a way you cannot resolve without broader context, or the fix requires a decision outside PR scope.
 
-Exit when **any** of these are true:
+Do not loop just to re-argue pushback items. If the same concern returns and your technical reply is still valid, count it as resolved-by-pushback and evaluate the remaining items.
 
-- The latest Claude review body contains no `### Critical` or `### High` sections, and the remaining items are all either (a) triaged as pushback with clean technical reasoning you've already posted on-thread, or (b) cosmetic (`### Nits`) items you explicitly chose not to address. In other words: nothing severity-Critical/High remains to fix.
-- The review body uses explicit approval language — "ready to merge", "no remaining blockers", "LGTM", "looks good to merge" — and lists no new Critical/High items.
-- A formal review object with `state == "APPROVED"` has landed (rare, but honor it if it does).
-- You've hit 8 iterations. Stop and summarize what's oscillating. The human needs to look.
-- Tests started failing in a way you can't resolve without broader context, or a fix requires a decision outside the PR's scope (e.g., schema migration, new dependency). Stop and ask.
+### Step 8 - Final Summary
 
-Do **not** loop just to re-argue pushback items. If Claude keeps raising the same concern you've already defended on-thread with solid reasoning, count that concern as resolved-by-pushback and check the remaining items against the criteria above.
+Print a concise summary:
 
-If none of the exit conditions apply, loop back to Step 1.
-
-### Step 8 — Final summary
-
-Once exited, print:
-
-```
+```text
 ## PR Feedback Loop Complete
 
-Iterations: 3
-Total fixes: 7 items across 3 commits (abc1234, def5678, 9012abc)
-Pushbacks: 2 items (defended on-thread)
-Follow-ups invoked: /simplify (round 2), /core:code-review (round 1)
-Final Claude review: APPROVED
-PR: https://github.com/owner/repo/pull/12
+Reviewers handled: Codex, Claude
+Iterations: 2
+Total fixes: 4 items across 2 commits (abc1234, def5678)
+Pushbacks: 1 item (defended on-thread)
+Follow-ups invoked: /core:code-review (round 1)
+Final state: no remaining P1/P2 or Critical/High blockers
+PR: https://github.com/owner/repo/pull/16
 ```
 
-If you exited due to the iteration cap or an unresolved blocker, say so explicitly and name the specific item that's stuck.
+If you stopped due to a cap or blocker, say so and name the stuck item.
 
----
+## Interactive Mode
 
-## Interactive mode (`--interactive`)
+Interactive mode runs one pass:
 
-Runs **one pass** of the flow — no monitor loop, no autonomous push. Use when the user wants to steer.
+1. Run Common Setup.
+2. Fetch feedback.
+3. Read code and produce a triage table:
 
-1. Run the **Common setup** above.
-2. Run **Step 2 (fetch feedback)**.
-3. Run **Step 3 (read code and triage)** — but surface the triage table to the user and wait for confirmation before proceeding:
-
-   ```
+   ```text
    ## PR Feedback Triage
 
    ### Will Fix (3)
-   - **src/lib/actions/admin.ts:45** (@reviewer) — Missing null check on groupId
-     Reason: Legitimate bug, would throw on undefined input
-   - ...
+   - app/layout.tsx:19 (@chatgpt-codex-connector[bot], P1) - Avoid loading DB reconciliation from the root layout
+     Reason: Import-time DB client initialization can break optional DATABASE_URL mode.
 
    ### Will Push Back (1)
-   - **src/components/admin/panel.tsx:22** (@reviewer) — "Should use useCallback here"
-     Reason: Component renders once per page load, memoization adds complexity for no benefit
+   - components/example.tsx:22 (@claude[bot], Medium) - "Use useCallback here"
+     Reason: Component renders once per page load; memoization adds indirection without a measurable benefit.
 
    ### Need Clarification (0)
-
    ### Acknowledge (1)
-   - **General comment** (@reviewer) — "Good test coverage"
    ```
 
-   Let the user override specific items before continuing.
-4. Run **Step 4 (fixes + follow-ups)**. Ask the user before invoking `/simplify` or `/core:code-review` rather than deciding autonomously.
-5. Run **Step 5 (reply to threads)**.
-6. Run **Step 6 (commit)**, then ask "Ready to push?" and wait for confirmation before `git push`.
-7. Print the Step 8 summary for this single pass.
+4. Wait for user confirmation.
+5. Implement fixes and run tests.
+6. Reply to threads.
+7. Commit, then ask before pushing.
+8. Print the final summary for the single pass.
 
-Interactive mode never loops on its own. If the user wants another pass after Claude re-reviews, they'll re-invoke the skill.
+## Notes
 
----
-
-## Notes and gotchas
-
-- **Bot detection:** anything with a `[bot]` suffix in `user.login` is a bot. Claude is `claude[bot]`; CodeRabbit is `coderabbitai[bot]`. Don't reply to bots as if they were humans — keep replies technical and terse.
-- **Truncation:** raw `gh api` responses truncate around 30KB. Always use `--jq` filters, and fetch individual long comment bodies separately when needed.
-- **Drafts:** if `isDraft == true`, confirm with the user before looping — Claude reviews on drafts are often low-signal.
-- **Conflicts between Claude and human reviewers:** the loop exits on *Claude's* approval. If a human reviewer has unresolved comments, call it out in the final summary; don't silently ignore them.
-- **No `--no-verify`:** never skip hooks. If commit hooks fail, fix the root cause.
+- Bot identities differ by endpoint. `gh pr view --json reviews` may show Codex as `chatgpt-codex-connector`; inline review comments use `chatgpt-codex-connector[bot]`.
+- Codex's formal review body can be mostly boilerplate. The actionable content is often in inline comments, not the review body.
+- Claude usually posts full reviews as top-level issue comments, not formal review objects.
+- Use `--jq` filters for `gh api`; raw responses are large enough to hide relevant feedback.
+- If human reviewers have unresolved comments and the loop was scoped to bots, mention them in the final summary.
+- Never skip hooks with `--no-verify`.
